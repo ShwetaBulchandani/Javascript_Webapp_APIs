@@ -27,9 +27,20 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 18
+          
+      - name: create and configure
+        run: |
+          touch .env
+          echo port=8080 >> .env
+          echo host=localhost >> .env
+          echo dialect=mysql >> .env
+          echo user=root >> .env
+          echo password=9822684461mM@12 >> .env
+          echo database=cloud_db >> .env
 
       - name: Install dependencies
         run: npm install
 
       - name: Run tests
         run: npm test
+
