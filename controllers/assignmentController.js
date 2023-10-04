@@ -290,6 +290,3 @@ export const healthz = async (request, response) => {
         }
     }
 }
-
-
-

@@ -11,6 +11,7 @@ const CSV_FILE_PATH = '/Users/shwetabulchandani/Downloads/users.csv';
 const syncDatabase = async () => {
     try {
         // Sync the database to create tables if they don't exist
+
         await db.sequelize.sync({ force: false }); // Use force: true to recreate tables
 
         console.log('Database synced successfully.');
