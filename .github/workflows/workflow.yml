@@ -1,0 +1,35 @@
+name: MySQL Integration Test
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  connect-remote:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: "9822684461mM@12"
+          MYSQL_DATABASE: "cloud_db"
+          MYSQL_ROOT_HOST: "%"
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
