@@ -12,13 +12,13 @@ const assignmentModel = (sequelize) => {
         'assignment',
         {
             id: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.UUID,
+                defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
-                autoIncrement: true,
                 allowNull: false,
             },
             user_id: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.UUID,
             },
             name: {
                 type: DataTypes.STRING,
@@ -50,7 +50,7 @@ const assignmentModel = (sequelize) => {
         {
             timestamps: false,
             underscored: true, // Use snake_case for column names
-            initialAutoIncrement: 1,
+            // initialAutoIncrement: 1,
         }
     );
 

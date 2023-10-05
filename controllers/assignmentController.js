@@ -87,7 +87,7 @@ export const getAssignments = async (request, response) => {
 
     if (assignments.length === 0) {
       // Handle the case when no assignments are found for the user
-      return response.status(404).send('');
+      return response.status(204).send('');
     } else {
       // Send the assignments as a JSON response
       return response.status(200).send(assignments);
@@ -135,7 +135,7 @@ export const getAssignmentUsingId = async (request, response) => {
   
       const assignment = await db.assignment.findOne({ where: { id: request.params.id } });
 
-      if(!assignment) {return response.status(404).send('');} 
+      if(!assignment) {return response.status(204).send('');} 
   
       const id = request.params.id;
       const assignments = await getAssignmentById(authenticated, id);
