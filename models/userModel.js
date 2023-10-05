@@ -16,9 +16,9 @@ const userModel = (sequelize) => {
         'user',
         {
             id: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.UUID,
+                defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
-                autoIncrement: true,
                 allowNull: false,
             },
             first_name: {
@@ -52,7 +52,7 @@ const userModel = (sequelize) => {
         },
         {
             timestamps: false,
-            initialAutoIncrement: 1,
+            // initialAutoIncrement: 1,
         }
     );
 
