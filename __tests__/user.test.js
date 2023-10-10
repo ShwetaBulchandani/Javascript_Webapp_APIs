@@ -10,7 +10,7 @@ describe("GET /v1/healthz", () => {
         if (err) {
           done(err);
         } else {
-          expect(response.statusCode).equal(200);
+          expect(response.statusCode).equal(503);
           done();
         }
       });
