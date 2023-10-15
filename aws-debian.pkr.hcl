@@ -29,7 +29,7 @@ variable "subnet_id" {
 
 source "amazon-ebs" "awsdebian" {
   # ami_name      = "csye6225_${formatdate("YYYY-MM-DD HH:mm:ss", timestamp())}"
-  ami_name = "csye6225"
+  ami_name        = "csye6225"
   ami_description = "AMI for CSYE6225"
   region          = "us-east-1"
 
@@ -46,11 +46,11 @@ source "amazon-ebs" "awsdebian" {
 
 
   launch_block_device_mappings {
-      device_name           = "/dev/xvda"
-      volume_size           = 25
-      volume_type           = "gp2"
-      delete_on_termination = true
-    }
+    device_name           = "/dev/xvda"
+    volume_size           = 25
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
 }
 
 build {
