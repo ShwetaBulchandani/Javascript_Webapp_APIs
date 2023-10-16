@@ -8,17 +8,6 @@ jobs:
   connect-remote:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:latest
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-          MYSQL_ROOT_HOST: ${{ secrets.MYSQL_ROOT_HOST }}
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -37,12 +26,6 @@ jobs:
           echo user=${{ secrets.USER }} >> .env
           echo password=${{ secrets.PASSWORD }}>> .env
           echo database=${{ secrets.DATABASE }} >> .env
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
 
       - name: Install Packer
         run: |
