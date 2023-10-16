@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Check if running in GitHub Actions
+if [ -n "${GITHUB_ACTIONS}" ]; then
+  # In GitHub Actions, copy the content of .env directly
+  echo "${{ secrets.MY_ENV_VARIABLE }}" > .env
+fi
+
 if [ -f .env ]; then
   source .env
 else
