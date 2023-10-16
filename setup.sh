@@ -2,6 +2,7 @@
 
 
 # Check if running in GitHub Actions
+
 if [ -n "${GITHUB_ACTIONS}" ]; then
   # In GitHub Actions, copy the content of .env directly
   echo "password=${{ secrets.PASSWORD }}" > .env
@@ -15,6 +16,8 @@ else
   echo "Error: .env file not found"
   exit 1
 fi
+
+source .env
 
 sudo apt-get update
 sudo apt-get upgrade -y
