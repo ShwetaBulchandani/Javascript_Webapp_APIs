@@ -38,8 +38,26 @@ jobs:
           echo password=${{ secrets.PASSWORD }}>> .env
           echo database=${{ secrets.DATABASE }} >> .env
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Packer
+        run: |
+          wget https://releases.hashicorp.com/packer/1.7.2/packer_1.7.2_linux_amd64.zip
+          unzip packer_1.7.2_linux_amd64.zip
+          chmod +x packer
+          sudo mv packer /usr/local/bin/
+          packer version
+      
+      - name: zip all files
+        run: zip -r webapp.zip .
 
-      - name: Run tests
-        run: npm test
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Run Packer plugin installation
+        run: packer init .
+
+      - name: Run Packer file
+        run: packer build webapp.pkr.hcl

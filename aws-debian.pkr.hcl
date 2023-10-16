@@ -59,17 +59,17 @@ build {
     "source.amazon-ebs.awsdebian"
   ]
 
-  # provisioner "shell" {
-  #    environment_vars = [
-  #    "DEBIAN_FRONTEND=noninteractive",
-  #    "CHECKPOINT_DISABLE=1"
-  #     ]
-  #    inline = [
-  # "echo Installing Node.js",
-  #  "sleep 30",
-  # "sudo apt-get update",
-  # "sudo apt-get install nodejs -y",
-  # "sudo apt-get install uninstall -y",
-  #    ]
-  # }
+  provisioner "file" {
+    source      = "./users.csv"
+    destination = "/home/admin/users.csv"
+  }
+
+  provisioner "file" {
+    source      = "./webapp.zip"
+    destination = "/home/admin/webapp.zip"
+  }
+
+  provisioner "shell" {
+    script = "./setup.sh"
+  }
 }
