@@ -54,7 +54,6 @@ source "amazon-ebs" "awsdebian" {
 }
 
 build {
-  name = "learn-packer"
   sources = [
     "source.amazon-ebs.awsdebian"
   ]
