@@ -5,6 +5,7 @@ if [ -n "${GITHUB_ACTIONS}" ]; then
   # In GitHub Actions, copy the content of .env directly
   echo "${{ secrets.MYSQL_ROOT_PASSWORD }}" > .env
   echo "${{ secrets.MYSQL_DATABASE }}" > .env
+
 fi
 
 if [ -f .env ]; then
