@@ -3,7 +3,8 @@
 # Check if running in GitHub Actions
 if [ -n "${GITHUB_ACTIONS}" ]; then
   # In GitHub Actions, copy the content of .env directly
-  echo "${{ secrets.MY_ENV_VARIABLE }}" > .env
+  echo "${{ secrets.MYSQL_ROOT_PASSWORD }}" > .env
+  echo "${{ secrets.MYSQL_DATABASE }}" > .env
 fi
 
 if [ -f .env ]; then
