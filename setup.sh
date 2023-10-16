@@ -1,12 +1,11 @@
 #!/bin/sh
 
 # Check if running in GitHub Actions
-if [ -n "${GITHUB_ACTIONS}" ]; then
-  # In GitHub Actions, copy the content of .env directly
-  echo "${{ secrets.MYSQL_ROOT_PASSWORD }}" > .env
-  echo "${{ secrets.MYSQL_DATABASE }}" > .env
-
-fi
+# if [ -n "${GITHUB_ACTIONS}" ]; then
+#   # In GitHub Actions, copy the content of .env directly
+#   echo "${{ secrets.MYSQL_ROOT_PASSWORD }}" > .env
+#   echo "${{ secrets.MYSQL_DATABASE }}" > .env
+# fi
 
 if [ -f .env ]; then
   source .env
@@ -14,6 +13,8 @@ else
   echo "Error: .env file not found"
   exit 1
 fi
+
+source .env
 
 sudo apt-get update
 sudo apt-get upgrade -y
