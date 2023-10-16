@@ -60,4 +60,4 @@ jobs:
         run: packer init .
 
       - name: Run Packer file
-        run: packer build webapp.pkr.hcl
+        run: packer build aws-debian.pkr.hcl
