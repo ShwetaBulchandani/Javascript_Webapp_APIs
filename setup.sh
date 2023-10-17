@@ -18,6 +18,5 @@ cd opt
 sudo unzip -o webapp.zip
 cd webapp
 sudo npm i
-sudo npm rebuild bcrypt
 sudo npm run test
 # sudo npm start
