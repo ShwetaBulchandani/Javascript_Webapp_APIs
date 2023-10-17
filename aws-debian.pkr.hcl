@@ -29,10 +29,12 @@ variable "subnet_id" {
 
 variable "password" {
   type = string
+  default = "default_password"
 }
 
 variable "database" {
   type = string
+  default = "default_database"
 }
 
 source "amazon-ebs" "awsdebian" {
