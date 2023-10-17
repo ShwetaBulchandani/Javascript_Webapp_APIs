@@ -68,9 +68,12 @@ build {
     destination = "/home/admin/webapp.zip"
   }
 
-  provisioner "shell" {
+   provisioner "shell" {
     script = "./setup.sh"
-  }
+    environment_vars = [
+      "PASSWORD=${var.password}",
+      "DATABASE=${var.database}",
+    ]
+   }
 }
-
 
