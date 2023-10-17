@@ -60,7 +60,7 @@ source "amazon-ebs" "awsdebian" {
   # ami_name      = "csye6225_${formatdate("YYYY-MM-DD HH:mm:ss", timestamp())}"
   ami_name        = "csye6225"
   ami_description = "AMI for CSYE6225"
-  region          = "us-east-1"
+  region          = "us-east-1" 
 
   aws_polling {
     delay_seconds = 120
