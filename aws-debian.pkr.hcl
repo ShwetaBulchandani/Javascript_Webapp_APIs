@@ -27,6 +27,14 @@ variable "subnet_id" {
   default = "subnet-093b9373b64b56fa1"
 }
 
+variable "password" {
+  type = string
+}
+
+variable "database" {
+  type = string
+}
+
 source "amazon-ebs" "awsdebian" {
   # ami_name      = "csye6225_${formatdate("YYYY-MM-DD HH:mm:ss", timestamp())}"
   ami_name        = "csye6225"
