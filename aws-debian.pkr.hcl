@@ -28,16 +28,35 @@ variable "subnet_id" {
 }
 
 variable "password" {
-  type = string
-  default = "default_password"
+  type    = string
+  default = "${env("PASSWORD")}"
 }
 
 variable "database" {
-  type = string
-  default = "default_database"
+  type    = string
+  default = "${env("DATABASE")}"
 }
 
+variable "user" {
+  type    = string
+  default = "${env("USER")}"
+}
+
+
 source "amazon-ebs" "awsdebian" {
+  source_ami_filter {
+    most_recent = true
+
+    filters = {
+      name                = "debian-12-amd64*"
+      architecture        = "x86_64"
+      root-device-name    = "/dev/xvda"
+      root-device-type    = "ebs"
+      virtualization-type = "hvm"
+    }
+    owners = ["amazon"]
+  }
+
   # ami_name      = "csye6225_${formatdate("YYYY-MM-DD HH:mm:ss", timestamp())}"
   ami_name        = "csye6225"
   ami_description = "AMI for CSYE6225"
@@ -78,12 +97,12 @@ build {
     destination = "/home/admin/webapp.zip"
   }
 
-   provisioner "shell" {
+  provisioner "shell" {
     script = "./setup.sh"
     environment_vars = [
       "PASSWORD=${var.password}",
       "DATABASE=${var.database}",
+      "USER=${var.user}",
     ]
-   }
+  }
 }
-
