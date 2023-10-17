@@ -42,6 +42,7 @@ variable "user" {
   default = "${env("USER")}"
 }
 
+
 source "amazon-ebs" "awsdebian" {
   source_ami_filter {
     most_recent = true
