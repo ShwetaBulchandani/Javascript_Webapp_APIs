@@ -45,11 +45,4 @@ jobs:
         run: packer init .
 
       - name: Run Packer file
-        run: |
-          # export PORT=${{ secrets.PORT }}
-          # export HOST=${{ secrets.HOST }}
-          # export DIALECT=${{ secrets.DIALECT }}
-          # export USER=${{ secrets.USER }}
-          # export PASSWORD=${{ secrets.PASSWORD }}
-          # export DATABASE=${{ secrets.DATABASE }}
-          packer build -var "PASSWORD=${{ secrets.PASSWORD }}" -var "DATABASE=${{ secrets.DATABASE }}" -var "USER=${{ secrets.USER }}" aws-debian.pkr.hcl
+        run: packer build -var "PASSWORD=${{ secrets.PASSWORD }}" -var "DATABASE=${{ secrets.DATABASE }}" -var "USER=${{ secrets.USER }}" aws-debian.pkr.hcl
