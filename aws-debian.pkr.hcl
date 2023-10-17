@@ -27,17 +27,17 @@ variable "subnet_id" {
   default = "subnet-093b9373b64b56fa1"
 }
 
-variable "password" {
+variable "PASSWORD" {
   type    = string
   default = "${env("PASSWORD")}"
 }
 
-variable "database" {
+variable "DATABASE" {
   type    = string
   default = "${env("DATABASE")}"
 }
 
-variable "user" {
+variable "USER" {
   type    = string
   default = "${env("USER")}"
 }
@@ -100,9 +100,9 @@ build {
   provisioner "shell" {
     script = "./setup.sh"
     environment_vars = [
-      "PASSWORD=${var.password}",
-      "DATABASE=${var.database}",
-      "USER=${var.user}",
+      "PASSWORD=${var.PASSWORD}",
+      "DATABASE=${var.DATABASE}",
+      "USER=${var.USER}",
     ]
   }
 }
