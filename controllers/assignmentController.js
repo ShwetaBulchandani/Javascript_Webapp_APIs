@@ -198,7 +198,7 @@ export const getAssignmentUsingId = async (request, response) => {
     });
 
     if (!assignment) {
-      return response.status(404).send("");
+      return response.status(204).send("Assignment not found");
     }
 
     const id = request.params.id;
