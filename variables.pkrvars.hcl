@@ -17,4 +17,3 @@ provisioner_users_destination                      = "/home/admin/users.csv"
 provisioner_webapp_source                          = "./webapp.zip"
 provisioner_webapp_destination                     = "/home/admin/webapp.zip"
 provisioner_shell_script                           = "./setup.sh"
-
