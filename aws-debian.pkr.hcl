@@ -7,26 +7,6 @@ packer {
   }
 }
 
-variable "aws_region" {
-  type    = string
-  default = "us-east-1"
-}
-
-variable "source_ami" {
-  type    = string
-  default = "ami-06db4d78cb1d3bbf9"
-}
-
-variable "ssh_username" {
-  type    = string
-  default = "admin"
-}
-
-variable "subnet_id" {
-  type    = string
-  default = "subnet-093b9373b64b56fa1"
-}
-
 variable "PASSWORD" {
   type    = string
   default = "${env("PASSWORD")}"
@@ -42,43 +22,126 @@ variable "USER" {
   default = "${env("USER")}"
 }
 
+variable "ami_name" {
+  type    = string
+  default = null
+}
+
+variable "ami_description" {
+  type    = string
+  default = null
+}
+
+variable "aws_region" {
+  type    = string
+  default = null
+}
+
+variable "ami_users" {
+  type    = list(string)
+  default = null
+}
+
+variable "aws_polling_delay_seconds" {
+  type    = number
+  default = null
+}
+
+variable "aws_polling_max_attempts" {
+  type    = string
+  default = null
+}
+
+variable "instance_type" {
+  type    = string
+  default = null
+}
+
+variable "source_ami" {
+  type    = string
+  default = null
+}
+
+variable "ssh_username" {
+  type    = string
+  default = null
+}
+
+variable "subnet_id" {
+  type    = string
+  default = null
+}
+
+variable "launch_block_device_mappings_device_name" {
+  type    = string
+  default = null
+}
+
+variable "launch_block_device_mappings_volume_size" {
+  type    = string
+  default = null
+}
+
+variable "launch_block_device_mappings_volume_type" {
+  type    = string
+  default = null
+}
+
+variable "launch_block_device_mappings_delete_on_termination" {
+  type    = string
+  default = null
+}
+
+variable "provisioner_users_source" {
+  type    = string
+  default = null
+}
+
+variable "provisioner_users_destination" {
+  type    = string
+  default = null
+}
+
+variable "provisioner_webapp_source" {
+  type    = string
+  default = null
+}
+
+variable "provisioner_webapp_destination" {
+  type    = string
+  default = null
+}
+
+variable "provisioner_shell_script" {
+  type    = string
+  default = null
+}
 
 source "amazon-ebs" "awsdebian" {
-  source_ami_filter {
-    most_recent = true
 
-    filters = {
-      name                = "debian-12-amd64*"
-      architecture        = "x86_64"
-      root-device-name    = "/dev/xvda"
-      root-device-type    = "ebs"
-      virtualization-type = "hvm"
-    }
-    owners = ["amazon"]
-  }
-
-  # ami_name      = "csye6225_${formatdate("YYYY-MM-DD HH:mm:ss", timestamp())}"
-  ami_name        = "csye6225"
-  ami_description = "AMI for CSYE6225"
-  region          = "us-east-1" 
+  # ami_name        = "csye6225_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
+  ami_name        = "${var.ami_name}"
+  ami_description = "${var.ami_description}"
+  region          = "${var.aws_region}"
+  ami_users       = "${var.ami_users}"
 
   aws_polling {
-    delay_seconds = 120
-    max_attempts  = 50
+    delay_seconds = "${var.aws_polling_delay_seconds}"
+    max_attempts  = "${var.aws_polling_max_attempts}"
 
   }
 
-  instance_type = "t2.micro"
-  source_ami    = "ami-06db4d78cb1d3bbf9"
-  ssh_username  = "admin"
+  instance_type = "${var.instance_type}"
+  source_ami    = "${var.source_ami}"
+  ssh_username  = "${var.ssh_username}"
   subnet_id     = "${var.subnet_id}"
 
 
   launch_block_device_mappings {
-    device_name           = "/dev/xvda"
-    volume_size           = 25
-    volume_type           = "gp2"
-    delete_on_termination = true
+    device_name           = "${var.launch_block_device_mappings_device_name}"
+    volume_size           = "${var.launch_block_device_mappings_volume_size}"
+    volume_type           = "${var.launch_block_device_mappings_volume_type}"
+    delete_on_termination = "${var.launch_block_device_mappings_delete_on_termination}"
   }
 }
 
@@ -88,17 +151,17 @@ build {
   ]
 
   provisioner "file" {
-    source      = "./users.csv"
-    destination = "/home/admin/users.csv"
+    source      = "${var.provisioner_users_source}"
+    destination = "${var.provisioner_users_destination}"
   }
 
   provisioner "file" {
-    source      = "./webapp.zip"
-    destination = "/home/admin/webapp.zip"
+    source      = "${var.provisioner_webapp_source}"
+    destination = "${var.provisioner_webapp_destination}"
   }
 
   provisioner "shell" {
-    script = "./setup.sh"
+    script = "${var.provisioner_shell_script}"
     environment_vars = [
       "PASSWORD=${var.PASSWORD}",
       "DATABASE=${var.DATABASE}",
