@@ -6,13 +6,13 @@ const currentDate = new Date();
 const accountCreatedString = currentDate.toISOString();
 const accountUpdatedString = currentDate.toISOString();
 
-const CSV_FILE_PATH = '/home/admin/opt/users.csv';
+const CSV_FILE_PATH = '/Users/shwetabulchandani/Desktop/Users/users.csv';
 
 const syncDatabase = async () => {
     try {
         // Sync the database to create tables if they don't exist
 
-        await db.sequelize.sync({ force: false }); // Use force: true to recreate tables
+        await db.sequelize.sync({ alter: false }); // Use force: true to recreate tables
 
         console.log('Database synced successfully.');
     } catch (error) {
@@ -25,16 +25,15 @@ const loadCSVData = async () => {
     try {
         // Load and insert data from CSV files
         const csvData = fs.readFileSync(path.join(CSV_FILE_PATH), 'utf-8');
-        const rows = csvData.split('\n').map((row) => row.split(','));
+        const rows = csvData.split(/\r?\n/).map((row) => row.split(','));
+        console.log("data", rows);
 
         for (let i = 1; i < rows.length; i++) {
           const [first_name, last_name, emailid, password] = rows[i];
       
-          if (!last_name || !emailid || !password) {
-              console.log(`Skipping row ${i + 1} due to missing values.`);
+          if (!first_name || !last_name || !emailid || !password) {
               continue;
-          }
-      
+          } else {
           await db.user.create({
               first_name,
               last_name,
@@ -43,6 +42,7 @@ const loadCSVData = async () => {
               account_created: accountCreatedString,
               account_updated: accountUpdatedString,
           });
+        }
       }      
 
         console.log('CSV data loaded and inserted successfully.');

@@ -61,16 +61,11 @@ const userModel = (sequelize) => {
           user.password = bcrypt.hashSync(user.password, 12);
         }
         // Ignore any value provided for account_created
-        user.account_created = new Date().toISOString();
+        // user.account_created = new Date().toISOString();
         // Ignore any value provided for account_updated
-        user.account_updated = new Date().toISOString();
+        // user.account_updated = new Date().toISOString();
       });
     
-      User.beforeUpdate((user) => {
-        // Ignore any value provided for account_updated during update
-        user.account_updated = new Date().toISOString();
-      });
-
     return User;
 };
 

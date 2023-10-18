@@ -18,7 +18,7 @@ router.route('/assignments/:id')
 
 // 404 Route
 router.use((req, res) => {
-    res.status(404).json({ error: 'Not Found' });
+    res.status(405).json({ error: 'Not Found' });
 });
 
 export default router;
