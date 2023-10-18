@@ -132,6 +132,7 @@ source "amazon-ebs" "awsdebian" {
   ami_regions     = "${var.ami_regions}"
 
 
+
   aws_polling {
     delay_seconds = "${var.aws_polling_delay_seconds}"
     max_attempts  = "${var.aws_polling_max_attempts}"
