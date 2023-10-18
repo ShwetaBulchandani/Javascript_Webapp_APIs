@@ -67,11 +67,6 @@ variable "ssh_username" {
   default = null
 }
 
-variable "subnet_id" {
-  type    = string
-  default = null
-}
-
 variable "launch_block_device_mappings_device_name" {
   type    = string
   default = null
@@ -134,8 +129,6 @@ source "amazon-ebs" "awsdebian" {
   instance_type = "${var.instance_type}"
   source_ami    = "${var.source_ami}"
   ssh_username  = "${var.ssh_username}"
-  subnet_id     = "${var.subnet_id}"
-
 
   launch_block_device_mappings {
     device_name           = "${var.launch_block_device_mappings_device_name}"
