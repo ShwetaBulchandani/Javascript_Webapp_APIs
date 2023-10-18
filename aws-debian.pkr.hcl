@@ -43,7 +43,7 @@ variable "ami_users" {
 }
 
 variable "aws_polling_delay_seconds" {
-  type    = number
+  type    = string
   default = null
 }
 
