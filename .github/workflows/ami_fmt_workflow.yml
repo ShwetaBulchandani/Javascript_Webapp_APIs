@@ -3,23 +3,10 @@ name: MySQL Integration Test
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
 
 jobs:
   connect-remote:
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:latest
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-          MYSQL_ROOT_HOST: ${{ secrets.MYSQL_ROOT_HOST }}
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - name: Checkout code
@@ -40,8 +27,18 @@ jobs:
           echo password=${{ secrets.PASSWORD }}>> .env
           echo database=${{ secrets.DATABASE }} >> .env
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Packer
+        run: |
+          wget https://releases.hashicorp.com/packer/1.7.2/packer_1.7.2_linux_amd64.zip
+          unzip packer_1.7.2_linux_amd64.zip
+          chmod +x packer
+          sudo mv packer /usr/local/bin/
+          packer version
+      
+      - name: Run Packer pulgin installation
+        run: packer init .
 
-      - name: Run tests
-        run: npm test
+      - name: Run Packer fmt
+        run: packer fmt -check .
+
+

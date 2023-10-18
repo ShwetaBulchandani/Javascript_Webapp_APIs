@@ -3,22 +3,14 @@ import * as assignmentController from '../controllers/assignmentController.js';
 
 const router = express.Router();
 
-// Health Check
+router.route('/v1/assignments').post(assignmentController.post);
+router.route('/v1/assignments/:id').delete(assignmentController.remove);
+router.route('/v1/assignments').get(assignmentController.getAssignments);
+router.route('/v1/assignments/:id').put(assignmentController.updatedAssignment);
 router.route('/healthz').all(assignmentController.healthz);
-
-// Assignments Routes
-router.route('/assignments')
-  .get(assignmentController.getAssignments)
-  .post(assignmentController.post);
-
-router.route('/assignments/:id')
-  .get(assignmentController.getAssignmentUsingId)
-  .put(assignmentController.updatedAssignment)
-  .delete(assignmentController.remove);
-
-// 404 Route
+router.route('/v1/assignments/:id').get(assignmentController.getAssignmentUsingId);
 router.use((req, res) => {
-    res.status(404).json({ error: 'Not Found' });
+    res.status(404).send('');
 });
 
 export default router;
