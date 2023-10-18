@@ -39,23 +39,42 @@ export const post = async (request, response) => {
     }
     const bodyKeys = Object.keys(request.body);
 
+  const requiredKeys = [
+    "name",
+    "points",
+    "num_of_attempts",
+    "deadline",
+  ];
+
+  const optionalKeys = [
+    "assignment_created",
+    "assignment_updated",
+  ];
+
+  // Check if all required keys are present
+  const missingKeys = requiredKeys.filter(key => !bodyKeys.includes(key));
+
+  if (missingKeys.length > 0) {
+    return response.status(400).send("Missing required keys: " + missingKeys.join(", "));
+  }
+
+  // Check if there are any additional keys in the payload
+  const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key) && !optionalKeys.includes(key));
+
+  if (extraKeys.length > 0) {
+    return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
+  }
+
     let newDetails = request.body;
     newDetails.user_id = authenticated;
     newDetails.assignment_created = new Date().toISOString();
     newDetails.assignment_updated = new Date().toISOString();
 
-    if (
-      bodyKeys.some(
-        (bodyVal) =>
-          !["name", "points", "num_of_attempts", "deadline"].includes(bodyVal)
-      )
-    ) {
-      response.status(400).send("");
-    } else {
+    
       const savedDetails = await addAssignment(newDetails);
 
       return response.status(201).send("");
-    }
+    
   } catch (error) {
     handlePostError(response, error);
   }
@@ -252,18 +271,37 @@ export const updatedAssignment = async (request, response) => {
     }
     const bodyKeys = Object.keys(request.body);
 
+  const requiredKeys = [
+    "name",
+    "points",
+    "num_of_attempts",
+    "deadline",
+  ];
+
+  const optionalKeys = [
+    "assignment_created",
+    "assignment_updated",
+  ];
+
+  // Check if all required keys are present
+  const missingKeys = requiredKeys.filter(key => !bodyKeys.includes(key));
+
+  if (missingKeys.length > 0) {
+    return response.status(400).send("Missing required keys: " + missingKeys.join(", "));
+  }
+
+  // Check if there are any additional keys in the payload
+  const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key) && !optionalKeys.includes(key));
+
+  if (extraKeys.length > 0) {
+    return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
+  }
+
     const id = request.params.id;
     let newDetails = request.body;
     newDetails.assignment_updated = new Date().toISOString();
 
-    if (
-      bodyKeys.some(
-        (bodyVal) =>
-          !["name", "points", "num_of_attempts", "deadline"].includes(bodyVal)
-      )
-    ) {
-      response.status(400).send("");
-    } else {
+    
       const updatedDetails = await updateAssignment(newDetails, id);
 
       // Check if the assignment was updated successfully
@@ -271,7 +309,7 @@ export const updatedAssignment = async (request, response) => {
         return response.status(204).send("");
       } else {
         return response.status(404).send("");
-      }
+      
     }
   } catch (error) {
     if (error.status === 503) {
