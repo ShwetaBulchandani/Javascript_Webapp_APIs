@@ -42,6 +42,11 @@ variable "ami_users" {
   default = null
 }
 
+variable "ami_region" {
+  type    = list(string)
+  default = null
+}
+
 variable "aws_polling_delay_seconds" {
   type    = string
   default = null
@@ -119,6 +124,8 @@ source "amazon-ebs" "awsdebian" {
   ami_description = "${var.ami_description}"
   region          = "${var.aws_region}"
   ami_users       = "${var.ami_users}"
+  ami_region      = "${var.ami_region}"
+
 
   aws_polling {
     delay_seconds = "${var.aws_polling_delay_seconds}"
