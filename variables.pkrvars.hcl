@@ -6,6 +6,7 @@ ami_regions                                        = ["us-east-1"]
 aws_region                                         = "us-east-1"
 ami_name                                           = "csye6225_"
 ami_description                                    = "AMI for CSYE6225"
+date_format                                        = "YYYY_MM_DD_hh_mm_ss"
 aws_polling_delay_seconds                          = "120"
 aws_polling_max_attempts                           = "50"
 launch_block_device_mappings_device_name           = "/dev/xvda"
