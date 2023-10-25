@@ -124,7 +124,8 @@ variable "provisioner_shell_script" {
 
 source "amazon-ebs" "awsdebian" {
 
-  ami_name        = "${var.ami_name}_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
+
+  ami_name        = "${var.ami_name}_${formatdate("${var.date_format}", timestamp())}"
   ami_description = "${var.ami_description}"
   region          = "${var.aws_region}"
   ami_users       = "${var.ami_users}"

@@ -2,7 +2,6 @@
 
 > ✅ Active status <br>
 
-
 ## Index
   - [Introduction](#objective)
   - [User Requirements 📝](#user-requirements)
