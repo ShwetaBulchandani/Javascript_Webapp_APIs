@@ -29,7 +29,7 @@ jobs:
 
       - name: zip all files
         run: zip -r webapp.zip .
-        
+
       - name: Install Packer
         run: |
           wget https://releases.hashicorp.com/packer/1.7.2/packer_1.7.2_linux_amd64.zip
@@ -42,4 +42,4 @@ jobs:
         run: packer init .
 
       - name: Run Packer validate
-        run: packer validate -var "PASSWORD=${{ secrets.PASSWORD }}" -var "DATABASE=${{ secrets.DATABASE }}" -var "USER=${{ secrets.USER }}" -var-file="variables.pkrvars.hcl" aws-debian.pkr.hcl
+        run: packer validate -var-file="variables.pkrvars.hcl" aws-debian.pkr.hcl

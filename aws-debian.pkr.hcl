@@ -102,6 +102,16 @@ variable "provisioner_webapp_destination" {
   default = null
 }
 
+variable "provisioner_service_source" {
+  type    = string
+  default = null
+}
+
+variable "provisioner_service_destination" {
+  type    = string
+  default = null
+}
+
 variable "provisioner_shell_script" {
   type    = string
   default = null
@@ -152,8 +162,8 @@ build {
   }
 
   provisioner "file" {
-    source      = "./webapp.service"
-    destination = "/home/admin/"
+    source      = "${var.provisioner_service_source}"
+    destination = "${var.provisioner_service_destination}"
   }
 
   provisioner "shell" {
