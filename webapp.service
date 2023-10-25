@@ -6,11 +6,10 @@ After=network.target
 Type=simple
 User=csye6225
 Group=csye6225
-WorkingDirectory=/home/admin/opt/
+WorkingDirectory=/opt/csye6225
 ExecStart=/usr/bin/npm start
 Restart=always
 RestartSec=10
 
 [Install]
-WantedBy=multi-user.target
 WantedBy=cloud-init.target
