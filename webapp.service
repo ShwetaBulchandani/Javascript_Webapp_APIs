@@ -4,7 +4,7 @@ After=network.target
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 [Service]
 Type=simple
-WorkingDirectory=/home/admin/opt/webapp/
+WorkingDirectory=/home/admin/opt/
 ExecStart=/usr/bin/npm start
 Restart=always
 RestartSec=10
