@@ -15,3 +15,4 @@ sudo cp /home/admin/aws-debian.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable aws-debian.service
 sudo systemctl start aws-debian.service
+
