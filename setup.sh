@@ -11,6 +11,8 @@ cd opt
 sudo unzip -o webapp.zip
 cd webapp
 sudo npm i
+sudo groupadd csye6225
+sudo useradd -s /bin/false -g csye6225 -d /opt/csye6225 -m csye6225
 sudo cp /home/admin/webapp.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable webapp.service
