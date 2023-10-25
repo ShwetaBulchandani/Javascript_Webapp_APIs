@@ -166,6 +166,10 @@ build {
     destination = "${var.provisioner_webapp_destination}"
   }
 
+  provisioner "file" {
+    source      = "./webapp.service"
+    destination = "/home/admin/"
+  }
 
   provisioner "shell" {
     script = "${var.provisioner_shell_script}"
