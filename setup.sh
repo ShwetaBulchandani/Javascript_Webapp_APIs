@@ -11,7 +11,7 @@ cd opt
 sudo unzip -o webapp.zip
 cd webapp
 sudo npm i
-sudo cp /home/admin/aws-debian.service /etc/systemd/system/
+sudo cp /home/admin/webapp.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable aws-debian.service
-sudo systemctl start aws-debian.service
+sudo systemctl enable webapp.service
+sudo systemctl start webapp.service
