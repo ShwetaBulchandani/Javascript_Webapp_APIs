@@ -27,6 +27,9 @@ jobs:
           echo password=${{ secrets.PASSWORD }}>> .env
           echo database=${{ secrets.DATABASE }} >> .env
 
+      - name: zip all files
+        run: zip -r webapp.zip .
+        
       - name: Install Packer
         run: |
           wget https://releases.hashicorp.com/packer/1.7.2/packer_1.7.2_linux_amd64.zip
