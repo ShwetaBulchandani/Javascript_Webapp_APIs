@@ -7,21 +7,6 @@ packer {
   }
 }
 
-variable "PASSWORD" {
-  type    = string
-  default = "${env("PASSWORD")}"
-}
-
-variable "DATABASE" {
-  type    = string
-  default = "${env("DATABASE")}"
-}
-
-variable "USER" {
-  type    = string
-  default = "${env("USER")}"
-}
-
 variable "ami_name" {
   type    = string
   default = null
@@ -173,10 +158,5 @@ build {
 
   provisioner "shell" {
     script = "${var.provisioner_shell_script}"
-    environment_vars = [
-      "PASSWORD=${var.PASSWORD}",
-      "DATABASE=${var.DATABASE}",
-      "USER=${var.USER}",
-    ]
   }
 }
