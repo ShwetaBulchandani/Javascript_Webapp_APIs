@@ -7,21 +7,6 @@ packer {
   }
 }
 
-variable "PASSWORD" {
-  type    = string
-  default = "${env("PASSWORD")}"
-}
-
-variable "DATABASE" {
-  type    = string
-  default = "${env("DATABASE")}"
-}
-
-variable "USER" {
-  type    = string
-  default = "${env("USER")}"
-}
-
 variable "ami_name" {
   type    = string
   default = null
@@ -117,6 +102,16 @@ variable "provisioner_webapp_destination" {
   default = null
 }
 
+variable "provisioner_service_source" {
+  type    = string
+  default = null
+}
+
+variable "provisioner_service_destination" {
+  type    = string
+  default = null
+}
+
 variable "provisioner_shell_script" {
   type    = string
   default = null
@@ -167,16 +162,11 @@ build {
   }
 
   provisioner "file" {
-    source      = "./webapp.service"
-    destination = "/home/admin/"
+    source      = "${var.provisioner_service_source}"
+    destination = "${var.provisioner_service_destination}"
   }
 
   provisioner "shell" {
     script = "${var.provisioner_shell_script}"
-    environment_vars = [
-      "PASSWORD=${var.PASSWORD}",
-      "DATABASE=${var.DATABASE}",
-      "USER=${var.USER}",
-    ]
   }
 }

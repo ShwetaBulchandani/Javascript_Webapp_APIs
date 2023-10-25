@@ -10,7 +10,7 @@ router.route('/v1/assignments/:id').put(assignmentController.updatedAssignment);
 router.route('/healthz').all(assignmentController.healthz);
 router.route('/v1/assignments/:id').get(assignmentController.getAssignmentUsingId);
 router.use((req, res) => {
-    res.status(404).send('');
+    res.status(405).send('');
 });
 
 export default router;

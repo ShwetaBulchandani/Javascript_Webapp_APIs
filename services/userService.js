@@ -6,8 +6,7 @@ const currentDate = new Date();
 const accountCreatedString = currentDate.toISOString();
 const accountUpdatedString = currentDate.toISOString();
 
-const CSV_FILE_PATH = '/home/admin/opt/users.csv';
-// const CSV_FILE_PATH = '/Users/shwetabulchandani/Downloads/users (4).csv';
+const CSV_FILE_PATH = '/home/admin/users.csv';
 
 const syncDatabase = async () => {
     try {
