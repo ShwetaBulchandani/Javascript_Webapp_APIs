@@ -1,0 +1,15 @@
+[Unit]
+Description=AWS-Debian App
+After=network.target
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+[Service]
+Type=simple
+User=csye6225
+Group=csye6225
+WorkingDirectory=/opt/csye6225
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=cloud-init.target

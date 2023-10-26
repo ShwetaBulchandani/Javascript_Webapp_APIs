@@ -7,26 +7,15 @@ packer {
   }
 }
 
-variable "PASSWORD" {
-  type    = string
-  default = "${env("PASSWORD")}"
-}
-
-variable "DATABASE" {
-  type    = string
-  default = "${env("DATABASE")}"
-}
-
-variable "USER" {
-  type    = string
-  default = "${env("USER")}"
-}
-
 variable "ami_name" {
   type    = string
   default = null
 }
 
+variable "date_format" {
+  type    = string
+  default = null
+}
 
 variable "ami_description" {
   type    = string
@@ -113,6 +102,16 @@ variable "provisioner_webapp_destination" {
   default = null
 }
 
+variable "provisioner_service_source" {
+  type    = string
+  default = null
+}
+
+variable "provisioner_service_destination" {
+  type    = string
+  default = null
+}
+
 variable "provisioner_shell_script" {
   type    = string
   default = null
@@ -120,7 +119,8 @@ variable "provisioner_shell_script" {
 
 source "amazon-ebs" "awsdebian" {
 
-  ami_name        = "${var.ami_name}_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
+
+  ami_name        = "${var.ami_name}_${formatdate("${var.date_format}", timestamp())}"
   ami_description = "${var.ami_description}"
   region          = "${var.aws_region}"
   ami_users       = "${var.ami_users}"
@@ -161,12 +161,12 @@ build {
     destination = "${var.provisioner_webapp_destination}"
   }
 
+  provisioner "file" {
+    source      = "${var.provisioner_service_source}"
+    destination = "${var.provisioner_service_destination}"
+  }
+
   provisioner "shell" {
     script = "${var.provisioner_shell_script}"
-    environment_vars = [
-      "PASSWORD=${var.PASSWORD}",
-      "DATABASE=${var.DATABASE}",
-      "USER=${var.USER}",
-    ]
   }
 }
