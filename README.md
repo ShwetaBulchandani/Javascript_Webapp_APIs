@@ -99,4 +99,4 @@ http://localhost:3000/v1/assignments/{id} where you should see: "404 No Content"
 
 http://localhost:3000/v1/assignments where you should use: "404 No Content".
 
-[http:](http://localhost:3000/v1/assignments where you should use: "404 No Content".
+[http:](http://localhost:3000/v1/assignments where you should use: "404 No Content"...
