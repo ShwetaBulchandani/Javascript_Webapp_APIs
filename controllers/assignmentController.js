@@ -8,12 +8,14 @@ import {
   healthCheck,
 } from "../services/assignmentService.js";
 import db from "../config/dbSetup.js";
+import logger from "../config/dbSetup.js";
 
 // Create assignment
 export const post = async (request, response) => {
   try {
     const health = await healthCheck(); //heathcheck for create assignment api
     if (health !== true) {
+      logger.warn('Health check failed during post');
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -22,12 +24,16 @@ export const post = async (request, response) => {
 
     if (request.method !== "POST") {
       // If the method is not GET, return 405 Method Not Allowed
+
+      logger.warn(`Invalid method ${request.method} for post`);
       return response.status(405).send("");
     }
 
     const authHeader = request.headers.authorization;
 
     if (!isValidAuthHeader(authHeader)) {
+
+      logger.warn('Invalid authorization header for post');
       return response.status(401).send("");
     }
 
@@ -55,6 +61,7 @@ export const post = async (request, response) => {
   const missingKeys = requiredKeys.filter(key => !bodyKeys.includes(key));
 
   if (missingKeys.length > 0) {
+    logger.warn(`Missing required keys in the payload for post: ${missingKeys.join(', ')}`);
     return response.status(400).send("Missing required keys: " + missingKeys.join(", "));
   }
 
@@ -62,6 +69,7 @@ export const post = async (request, response) => {
   const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key) && !optionalKeys.includes(key));
 
   if (extraKeys.length > 0) {
+    logger.warn(`Invalid keys in the payload for post: ${extraKeys.join(', ')}`);
     return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
   }
 
@@ -73,6 +81,7 @@ export const post = async (request, response) => {
     
       const savedDetails = await addAssignment(newDetails);
 
+      logger.info(`Assignment created successfully for post: ${savedDetails.id}`);
       return response.status(201).send("");
     
   } catch (error) {
@@ -108,6 +117,7 @@ export const getAssignments = async (request, response) => {
     // Health check
     const health = await healthCheck();
     if (health !== true) {
+      logger.warn('Health check failed during getAssignments');
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -116,12 +126,14 @@ export const getAssignments = async (request, response) => {
 
     if (request.method !== "GET") {
       // If the method is not GET, return 405 Method Not Allowed
+      logger.warn(`Invalid method ${request.method} for getAssignments`);
       return response.status(405).send("");
     }
 
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
+      logger.warn('Invalid authorization header for getAssignments');
       return response.status(401).send("");
     }
 
@@ -134,6 +146,7 @@ export const getAssignments = async (request, response) => {
     const authenticated = await authenticate(email, password);
 
     if (authenticated === null) {
+      logger.warn('Authentication failed for getAssignments');
       return response.status(401).send("");
     }
 
@@ -141,9 +154,11 @@ export const getAssignments = async (request, response) => {
 
     if (assignments.length === 0) {
       // Handle the case when no assignments are found for the user
+      logger.info('No assignments found for getAssignments');
       return response.status(200).send("");
     } else {
       // Send the assignments as a JSON response
+      logger.info(`Assignments retrieved successfully for getAssignments: ${JSON.stringify(assignments)}`);
       return response.status(200).send(assignments);
     }
   } catch (error) {
@@ -151,8 +166,10 @@ export const getAssignments = async (request, response) => {
       return response.status(403).send("");
     } else if (error.status === 503) {
       // Other 503 handling
+      logger.error(`Error during getAssignments: ${error.message}`);
       return response.status(503).send("");
     } else {
+      logger.error(`Error during getAssignments: ${error.message}`);
       return response.status(400).send("");
     }
   }
@@ -164,6 +181,7 @@ export const getAssignmentUsingId = async (request, response) => {
     // Health check
     const health = await healthCheck();
     if (health !== true) {
+      logger.warn('Health check failed during getAssignmentById');
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -172,12 +190,15 @@ export const getAssignmentUsingId = async (request, response) => {
 
     if (request.method !== "GET") {
       // If the method is not GET, return 405 Method Not Allowed
+
+      logger.warn(`Invalid method ${request.method} for getAssignmentById`);
       return response.status(405).send("");
     }
 
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
+      logger.warn('Unauthorized request for getAssignmentById');
       return response.status(401).send("");
     }
 
@@ -190,6 +211,7 @@ export const getAssignmentUsingId = async (request, response) => {
     const authenticated = await authenticate(email, password);
 
     if (authenticated === null) {
+      logger.warn('Authentication failed for getAssignmentById');
       return response.status(401).send("");
     }
 
@@ -198,6 +220,7 @@ export const getAssignmentUsingId = async (request, response) => {
     });
 
     if (!assignment) {
+      logger.info(`Assignment not found for getAssignmentById: ${request.params.id}`);
       return response.status(204).send("Assignment not found");
     }
 
@@ -206,18 +229,24 @@ export const getAssignmentUsingId = async (request, response) => {
 
     if (!assignments) {
       // Handle the case when no assignments are found for the user
+
+      logger.info(`No assignments found for getAssignmentById: ${id}`);
       return response.status(404).send("");
     } else {
       // Send the assignments as a JSON response
+      logger.info(`Assignments retrieved successfully for getAssignmentById: ${id}`);
       return response.status(200).send(assignments);
     }
   } catch (error) {
     if (error.status === 403) {
+      logger.warn(`Forbidden access for getAssignmentById: ${error.message}`);
       return response.status(403).send("");
     } else if (error.status === 503) {
       // Other 503 handling
+      logger.error(`Error during getAssignmentById: ${error.message}`);
       return response.status(503).send("");
     } else {
+      logger.error(`Error during getAssignmentById: ${error.message}`);
       return response.status(400).send("");
     }
   }
@@ -229,6 +258,7 @@ export const updatedAssignment = async (request, response) => {
     // Health check
     const health = await healthCheck();
     if (health !== true) {
+      logger.warn('Health check failed during assignment update');
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -237,12 +267,14 @@ export const updatedAssignment = async (request, response) => {
 
     if (request.method !== "PUT") {
       // If the method is not GET, return 405 Method Not Allowed
+      logger.warn(`Invalid method ${request.method} for assignment update`);
       return response.status(405).send("");
     }
 
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
+      logger.warn('Unauthorized request for assignment update');
       return response.status(401).send("");
     }
 
@@ -255,6 +287,7 @@ export const updatedAssignment = async (request, response) => {
     const authenticated = await authenticate(email, password);
 
     if (authenticated === null) {
+      logger.warn('Authentication failed during assignment update');
       return response.status(401).send("");
     }
 
@@ -263,10 +296,12 @@ export const updatedAssignment = async (request, response) => {
     });
 
     if (!assignment) {
+      logger.warn(`Assignment not found for update: ${request.params.id}`);
       return response.status(404).send("");
     }
 
     if (assignment.user_id != authenticated) {
+      logger.warn(`Unauthorized user for assignment update: ${authenticated}`);
       return response.status(403).send("");
     }
     const bodyKeys = Object.keys(request.body);
@@ -287,6 +322,7 @@ export const updatedAssignment = async (request, response) => {
   const missingKeys = requiredKeys.filter(key => !bodyKeys.includes(key));
 
   if (missingKeys.length > 0) {
+    logger.warn(`Missing required keys for assignment update: ${missingKeys.join(', ')}`);
     return response.status(400).send("Missing required keys: " + missingKeys.join(", "));
   }
 
@@ -294,6 +330,7 @@ export const updatedAssignment = async (request, response) => {
   const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key) && !optionalKeys.includes(key));
 
   if (extraKeys.length > 0) {
+    logger.warn(`Invalid keys in the payload for assignment update: ${extraKeys.join(', ')}`);
     return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
   }
 
@@ -306,16 +343,20 @@ export const updatedAssignment = async (request, response) => {
 
       // Check if the assignment was updated successfully
       if (updatedDetails) {
+        logger.info(`Assignment updated successfully: ${id}`);
         return response.status(204).send("");
       } else {
+        logger.warn(`Assignment not found for update: ${id}`);
         return response.status(404).send("");
       
     }
   } catch (error) {
     if (error.status === 503) {
       // Other 503 handling
+      logger.error(`Error during assignment update: ${error.message}`);
       return response.status(503).send("");
     } else {
+      logger.error(`Error during assignment update: ${error.message}`);
       return response.status(400).send("");
     }
   }
@@ -327,6 +368,7 @@ export const remove = async (request, response) => {
     // Health check
     const health = await healthCheck();
     if (health !== true) {
+      logger.warn('Health check failed during assignment removal');
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -335,12 +377,14 @@ export const remove = async (request, response) => {
 
     if (request.method !== "DELETE") {
       // If the method is not GET, return 405 Method Not Allowed
+      logger.warn(`Invalid method ${request.method} for assignment removal`);
       return response.status(405).send("");
     }
 
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
+      logger.warn('Unauthorized request for assignment removal');
       return response.status(401).send("");
     }
 
@@ -353,6 +397,7 @@ export const remove = async (request, response) => {
     const authenticated = await authenticate(email, password);
 
     if (authenticated === null) {
+      logger.warn('Authentication failed during assignment removal');
       return response.status(401).send("");
     }
 
@@ -361,14 +406,17 @@ export const remove = async (request, response) => {
     });
 
     if (!assignment) {
+      logger.warn(`Assignment not found for removal: ${request.params.id}`);
       return response.status(404).send("");
     }
 
     if (assignment.user_id != authenticated) {
+      logger.warn(`Unauthorized user for assignment removal: ${authenticated}`);
       return response.status(403).send("");
     }
 
     if (request.body && Object.keys(request.body).length > 0) {
+      logger.warn('Invalid request body for assignment removal');
       return response.status(400).send("");
     }
 
@@ -377,15 +425,19 @@ export const remove = async (request, response) => {
 
     // Check if the assignment was removed successfully
     if (removedDetails > 0) {
+      logger.info(`Assignment removed successfully: ${id}`);
       return response.status(204).send("");
     } else {
+      logger.warn(`Assignment not found for removal: ${id}`);
       return response.status(404).send("");
     }
   } catch (error) {
     if (error.status === 503) {
       // Other 503 handling
+      logger.error(`Error during assignment removal: ${error.message}`);
       return response.status(503).send("");
     } else {
+      logger.error(`Error during assignment removal: ${error.message}`);
       return response.status(400).send("");
     }
   }
@@ -394,26 +446,32 @@ export const remove = async (request, response) => {
 //healthz check for assignment
 export const healthz = async (request, response) => {
   if (request.method !== "GET") {
+    logger.warn(`Invalid method ${request.method} for healthz check`);
     return response.status(405).send("");
   } else if (request.headers["content-length"] > 0) {
+    logger.warn('Invalid content-length for healthz check');
     return response.status(400).send("");
   } else if (request.query && Object.keys(request.query).length > 0) {
+    logger.warn('Invalid query parameters for healthz check');
     return response.status(400).send("");
   } else {
     try {
       const health = await healthCheck();
       if (health === true) {
+        logger.info('Health check passed');
         return response
           .status(200)
           .header("Cache-Control", "no-cache, no-store, must-revalidate")
           .send("");
       } else {
+        logger.warn('Health check failed');
         return response
           .status(503)
           .header("Cache-Control", "no-cache, no-store, must-revalidate")
           .send("");
       }
     } catch (error) {
+      logger.error(`Error during health check: ${error.message}`);
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")

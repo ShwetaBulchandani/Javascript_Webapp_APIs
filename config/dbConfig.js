@@ -20,6 +20,8 @@ const databaseConfig = {
   port,
 };
 
+logger.info('Database configuration loaded successfully:', databaseConfig);
+
 export default {
   database: databaseConfig,
 };
