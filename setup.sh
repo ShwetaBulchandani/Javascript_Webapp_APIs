@@ -10,11 +10,13 @@ sudo useradd -s /bin/false -g csye6225 -d /opt/csye6225 -m csye6225
 
 sudo mv /home/admin/webapp.zip /opt/csye6225/webapp.zip
 sudo mv /home/admin/users.csv /opt/csye6225/users.csv
+sudo mv /home/admin/cloudwatch-config.json /opt/csye6225/cloudwatch-config.json
+sudo mv /home
 cd /opt/csye6225
 sudo unzip -o webapp.zip
 cd /opt/csye6225/webapp
 sudo npm i
-sudo cp /home/admin/webapp.service /etc/systemd/system/
+sudo cp /home/admin/webapp.service /etc/systemd/system/webapp.service
 sudo systemctl daemon-reload
 sudo systemctl enable webapp.service
 sudo systemctl start webapp.service

@@ -8,16 +8,17 @@ import userModel from '../models/userModel.js';
 // );
 
 const winston = require("winston");
-// const StatsD = require('node-statsd');
+const StatsD = require('node-statsd');
 
-// const statsdClient = new StatsD();
+const statsdClient = new StatsD();
 
 const logger = winston.createLogger({
-  level: 'info',
   format: winston.format.json(),
-  transports: [new winston.transports.File({ filename: '/var/log/csye6225.log'})],
+  transports: [new winston.transports.File({ filename: 'csye6225.log'})],
 });
 
+ 
+module.exports = appLogger;
 const { dialect, host, user, password, database } = config.database;
 
 const sequelize = new Sequelize(`${dialect}://${user}:${password}@${host}/${database}`);
