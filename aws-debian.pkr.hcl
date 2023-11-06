@@ -157,6 +157,11 @@ build {
   }
 
   provisioner "file" {
+    source      = "${var.provisioner_config_source}"
+    destination = "${var.provisioner_config_destination}"
+  }
+
+  provisioner "file" {
     source      = "${var.provisioner_webapp_source}"
     destination = "${var.provisioner_webapp_destination}"
   }
