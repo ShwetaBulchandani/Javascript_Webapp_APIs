@@ -7,6 +7,17 @@ import userModel from '../models/userModel.js';
 //   `${config.database.dialect}://${config.database.user}:${config.database.pd}@${config.database.host}/${config.database.database}`
 // );
 
+const winston = require("winston");
+// const StatsD = require('node-statsd');
+
+// const statsdClient = new StatsD();
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  transports: [new winston.transports.File({ filename: '/var/log/csye6225.log'})],
+});
+
 const { dialect, host, user, password, database } = config.database;
 
 const sequelize = new Sequelize(`${dialect}://${user}:${password}@${host}/${database}`);
@@ -18,4 +29,4 @@ const db = {
   user: userModel(sequelize),
 };
 
-export default db;
+export { db, logger, statsdClient };

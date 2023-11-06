@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import db from '../config/dbSetup.js';
+import logger from '../config/dbSetup.js';
 
 const currentDate = new Date();
 const accountCreatedString = currentDate.toISOString();
@@ -10,14 +11,14 @@ const CSV_FILE_PATH = '/opt/csye6225/users.csv';
 
 const syncDatabase = async () => {
     try {
-        // Sync the database to create tables if they don't exist
-
-        await db.sequelize.sync({ alter: false }); // Use force: true to recreate tables
+        await db.sequelize.sync({ alter: false }); 
+        logger.info('Database synced successfully.');
 
         console.log('Database synced successfully.');
     } catch (error) {
         console.error('Error syncing the database:', error);
-        throw error; // Ensure the error is propagated
+        logger.error(`Error syncing the database: ${error.message}`);
+        throw error;
     }
 };
 
@@ -46,8 +47,10 @@ const loadCSVData = async () => {
       }      
 
         console.log('CSV data loaded and inserted successfully.');
+        logger.info('CSV data loaded and inserted successfully.');
     } catch (error) {
         console.error('Error loading CSV data:', error.message);
+        logger.error(`Error loading CSV data: ${error.message}`);
         throw error; // Ensure the error is propagated
     }
 };
@@ -58,8 +61,10 @@ const initializeDatabase = async () => {
         await loadCSVData();
 
         console.log('Database bootstrapped successfully.');
+        logger.info('Database bootstrapped successfully.');
     } catch (error) {
         console.error('Error initializing the database:', error.message);
+        logger.error(`Error initializing the database: ${error.message}`);
     }
 };
 
