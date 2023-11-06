@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import db from '../config/dbSetup.js';
-import logger from '../config/dbSetup.js';
+import logger from "../config/logger.js";
 
 const currentDate = new Date();
 const accountCreatedString = currentDate.toISOString();

@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import db from "../config/dbSetup.js";
-import logger from "../config/dbSetup.js";
+import logger from "../config/logger.js";
 
 //add a new assignment
 export const addAssignment = async (newAssignmentDetails) => {
