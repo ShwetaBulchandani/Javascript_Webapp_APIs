@@ -8,7 +8,7 @@ import {
   healthCheck,
 } from "../services/assignmentService.js";
 import db from "../config/dbSetup.js";
-import logger from "../config/dbSetup.js";
+import logger from "../config/logger.js";
 
 // Create assignment
 export const post = async (request, response) => {
