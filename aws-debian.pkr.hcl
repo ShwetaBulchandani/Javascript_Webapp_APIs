@@ -112,6 +112,16 @@ variable "provisioner_service_destination" {
   default = null
 }
 
+variable "provisioner_config_source" {
+  type    = string
+  default = null
+}
+
+variable "provisioner_config_destination" {
+  type    = string
+  default = null
+}
+
 variable "provisioner_shell_script" {
   type    = string
   default = null
