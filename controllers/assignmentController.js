@@ -9,6 +9,8 @@ import {
 } from "../services/assignmentService.js";
 import db from "../config/dbSetup.js";
 import logger from "../config/logger.js";
+const StatsD =  require("node-statsd");
+const statsd = new StatsD({ host: "localhost", port: 8125 });
 
 // Create assignment
 export const post = async (request, response) => {
@@ -43,6 +45,10 @@ export const post = async (request, response) => {
     if (authenticated === null) {
       return response.status(401).send("");
     }
+
+    // Increment custom metric for post API calls
+    statsd.increment('api.post.calls');
+
     const bodyKeys = Object.keys(request.body);
 
   const requiredKeys = [
@@ -150,6 +156,9 @@ export const getAssignments = async (request, response) => {
       return response.status(401).send("");
     }
 
+    // Increment custom metric for getAssignments API calls
+    statsd.increment('api.getAssignments.calls');
+
     const assignments = await getAllAssignments();
 
     if (assignments.length === 0) {
@@ -214,6 +223,9 @@ export const getAssignmentUsingId = async (request, response) => {
       logger.warn('Authentication failed for getAssignmentById');
       return response.status(401).send("");
     }
+
+    // Increment custom metric for getAssignmentUsingId API calls
+    statsd.increment('api.getAssignmentUsingId.calls');
 
     const assignment = await db.assignment.findOne({
       where: { id: request.params.id },
@@ -290,6 +302,9 @@ export const updatedAssignment = async (request, response) => {
       logger.warn('Authentication failed during assignment update');
       return response.status(401).send("");
     }
+
+    // Increment custom metric for updatedAssignment API calls
+    statsd.increment('api.updatedAssignment.calls');
 
     const assignment = await db.assignment.findOne({
       where: { id: request.params.id },
@@ -401,6 +416,9 @@ export const remove = async (request, response) => {
       return response.status(401).send("");
     }
 
+    // Increment custom metric for remove API calls
+    statsd.increment('api.remove.calls');
+
     const assignment = await db.assignment.findOne({
       where: { id: request.params.id },
     });
@@ -445,37 +463,45 @@ export const remove = async (request, response) => {
 
 //healthz check for assignment
 export const healthz = async (request, response) => {
-  if (request.method !== "GET") {
-    logger.warn(`Invalid method ${request.method} for healthz check`);
-    return response.status(405).send("");
-  } else if (request.headers["content-length"] > 0) {
-    logger.warn('Invalid content-length for healthz check');
-    return response.status(400).send("");
-  } else if (request.query && Object.keys(request.query).length > 0) {
-    logger.warn('Invalid query parameters for healthz check');
-    return response.status(400).send("");
-  } else {
-    try {
-      const health = await healthCheck();
-      if (health === true) {
-        logger.info('Health check passed');
-        return response
-          .status(200)
-          .header("Cache-Control", "no-cache, no-store, must-revalidate")
-          .send("");
-      } else {
-        logger.warn('Health check failed');
+  try {
+    // Increment custom metric for healthz API calls
+    statsd.increment('api.healthz.calls');
+
+    if (request.method !== "GET") {
+      logger.warn(`Invalid method ${request.method} for healthz check`);
+      return response.status(405).send("");
+    } else if (request.headers["content-length"] > 0) {
+      logger.warn('Invalid content-length for healthz check');
+      return response.status(400).send("");
+    } else if (request.query && Object.keys(request.query).length > 0) {
+      logger.warn('Invalid query parameters for healthz check');
+      return response.status(400).send("");
+    } else {
+      try {
+        const health = await healthCheck();
+        if (health === true) {
+          logger.info('Health check passed');
+          return response
+            .status(200)
+            .header("Cache-Control", "no-cache, no-store, must-revalidate")
+            .send("");
+        } else {
+          logger.warn('Health check failed');
+          return response
+            .status(503)
+            .header("Cache-Control", "no-cache, no-store, must-revalidate")
+            .send("");
+        }
+      } catch (error) {
+        logger.error(`Error during health check: ${error.message}`);
         return response
           .status(503)
           .header("Cache-Control", "no-cache, no-store, must-revalidate")
           .send("");
       }
-    } catch (error) {
-      logger.error(`Error during health check: ${error.message}`);
-      return response
-        .status(503)
-        .header("Cache-Control", "no-cache, no-store, must-revalidate")
-        .send("");
     }
+  } finally {
+    // This block will run regardless of the outcome, incrementing the total count
+    statsd.increment('api.healthz.total');
   }
 };
