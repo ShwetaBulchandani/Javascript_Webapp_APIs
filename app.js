@@ -3,6 +3,7 @@ import cors from "cors";
 import route from "./routes/index.js";
 import initializeDatabase from './services/userService.js';
 import logger from "./config/logger.js";
+import bodyParserErrorHandler from 'express-body-parser-error-handler';
 
 const app = express();
 app.use(cors());
@@ -19,6 +20,7 @@ logger.info('Initializing the database...');
 initializeDatabase();
 logger.info('Database initialized successfully.');
 
+app.use(bodyParserErrorHandler());
 export default app;
 
 
