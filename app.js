@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import route from "./routes/index.js";
 import initializeDatabase from './services/userService.js';
+import logger from "./config/logger.js";
 
 const app = express();
 app.use(cors());
