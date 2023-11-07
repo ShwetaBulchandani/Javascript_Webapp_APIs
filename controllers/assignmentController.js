@@ -9,7 +9,7 @@ import {
 } from "../services/assignmentService.js";
 import db from "../config/dbSetup.js";
 import logger from "../config/logger.js";
-const StatsD =  require("node-statsd");
+import StatsD from "node-statsd";
 const statsd = new StatsD({ host: "localhost", port: 8125 });
 
 // Create assignment
