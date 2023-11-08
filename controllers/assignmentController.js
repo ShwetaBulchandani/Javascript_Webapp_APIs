@@ -547,26 +547,38 @@ export const healthz = async (request, response) => {
           return response
             .status(200)
             .header("Cache-Control", "no-cache, no-store, must-revalidate")
+<<<<<<< HEAD
             .json({
               message: "Database is healthy",
             });
+=======
+            .send("Database is healthy");
+>>>>>>> ff4871b54c63e542b805150d7aca0a87732cd268
         } else {
           logger.warn('Health check failed');
           return response
             .status(503)
             .header("Cache-Control", "no-cache, no-store, must-revalidate")
+<<<<<<< HEAD
             .json({
               message: "Database is not healthy",
             });
+=======
+            .send("Database is not healthy");
+>>>>>>> ff4871b54c63e542b805150d7aca0a87732cd268
         }
       } catch (error) {
         logger.error(`Error during health check: ${error.message}`);
         return response
           .status(503)
           .header("Cache-Control", "no-cache, no-store, must-revalidate")
+<<<<<<< HEAD
           .json({
             message: "Database is not healthy",
           });
+=======
+          .send("Database is not healthy");
+>>>>>>> ff4871b54c63e542b805150d7aca0a87732cd268
       }
     }
   } finally {
