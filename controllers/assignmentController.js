@@ -84,6 +84,13 @@ export const post = async (request, response) => {
     return response.status(400).json(errorMessage);
   }
 
+  // Check if 'name' is a string
+     if (typeof request.body.name !== 'string') {
+      return response.status(400).json({
+        message: "Name should be a string",
+      });
+  }
+
   // Check if 'points' is an integer
   if (!Number.isInteger(request.body.points)) {
     return response.status(400).json({
@@ -376,6 +383,12 @@ export const updatedAssignment = async (request, response) => {
     return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
   }
 
+   // Check if 'name' is a string
+   if (typeof request.body.name !== 'string') {
+    return response.status(400).json({
+      message: "Name should be a string",
+    });
+  }
       // Check if 'points' is an integer
       if (!Number.isInteger(request.body.points)) {
         return response.status(400).json({
