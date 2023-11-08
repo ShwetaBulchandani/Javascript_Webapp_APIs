@@ -100,3 +100,38 @@ http://localhost:3000/v1/assignments/{id} where you should see: "404 No Content"
 http://localhost:3000/v1/assignments where you should use: "404 No Content".
 
 [http:](http://localhost:3000/v1/assignments where you should use: "404 No Content"...
+
+
+## Updates
+
+1. **CloudWatch Logs Integration:**
+   - All application log data is now streamed to CloudWatch for centralized log management.
+   - Logs can be viewed and analyzed in the AWS CloudWatch console.
+
+2. **API Metrics Collection:**
+   - Application APIs are instrumented to collect metrics.
+   - Metrics data is captured in CloudWatch for monitoring and analysis.
+
+3. **Custom Metrics:**
+   - Custom metrics have been created to count the number of times each API is called.
+   - Metrics data is collected in CloudWatch for visibility and analysis.
+
+## Retrieving Custom Metrics
+
+You can retrieve custom metrics using either StatsD or collectd. Choose the option that best fits your monitoring and analysis needs.
+
+### StatsD Integration
+
+To retrieve custom metrics using StatsD, follow these steps:
+
+1. Install and configure a StatsD server.
+2. Configure the web application to send metrics to the StatsD server.
+3. Set up CloudWatch to collect metrics from StatsD.
+
+### collectd Integration
+
+To retrieve custom metrics using collectd, follow these steps:
+
+1. Install and configure collectd on the server hosting the web application.
+2. Configure collectd to capture and send metrics to CloudWatch.
+
