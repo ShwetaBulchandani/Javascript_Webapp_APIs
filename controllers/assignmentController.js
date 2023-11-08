@@ -75,8 +75,35 @@ export const post = async (request, response) => {
   const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key) && !optionalKeys.includes(key));
 
   if (extraKeys.length > 0) {
+    const errorMessage = {
+      message: "Invalid keys in the payload.",
+      details: extraKeys.map(key => `Unexpected key: ${key}`),
+    };
+  
     logger.warn(`Invalid keys in the payload for post: ${extraKeys.join(', ')}`);
-    return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
+    return response.status(400).json(errorMessage);
+  }
+
+  // Check if 'points' is an integer
+  if (!Number.isInteger(request.body.points)) {
+    return response.status(400).json({
+      message: "Points must be an integer.",
+    });
+  }
+
+  // Check if 'num_of_attempts' is an integer
+  if (!Number.isInteger(request.body.num_of_attempts)) {
+    return response.status(400).json({
+      message: "Number_of_attempts must be an integer.",
+    });
+  }
+
+  // Check if 'deadline' is a valid date
+  const deadlineDate = new Date(request.body.deadline);
+  if (isNaN(deadlineDate.getTime())) {
+    return response.status(400).json({
+      message: "Deadline must be an valid date.",
+    });
   }
 
   // Check if 'points' is an integer
@@ -364,6 +391,28 @@ export const updatedAssignment = async (request, response) => {
     logger.warn(`Invalid keys in the payload for assignment update: ${extraKeys.join(', ')}`);
     return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
   }
+
+      // Check if 'points' is an integer
+      if (!Number.isInteger(request.body.points)) {
+        return response.status(400).json({
+          message: "Points should be an integer",
+        });
+      }
+  
+      // Check if 'num_of_attempts' is an integer
+      if (!Number.isInteger(request.body.num_of_attempts)) {
+        return response.status(400).json({
+          message: "Num_of_attempts should be an integer",
+        });
+      }
+  
+      // Check if 'deadline' is a valid date
+      const deadlineDate = new Date(request.body.deadline);
+      if (isNaN(deadlineDate.getTime())) {
+        return response.status(400).json({
+          message: "Deadline should be a valid date",
+        });
+      }
 
     const id = request.params.id;
     let newDetails = request.body;
