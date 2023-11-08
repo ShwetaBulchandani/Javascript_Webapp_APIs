@@ -84,6 +84,13 @@ export const post = async (request, response) => {
     return response.status(400).json(errorMessage);
   }
 
+  // Check if 'name' is a string
+     if (typeof request.body.name !== 'string') {
+      return response.status(400).json({
+        message: "Name should be a string",
+      });
+  }
+
   // Check if 'points' is an integer
   if (!Number.isInteger(request.body.points)) {
     return response.status(400).json({
@@ -376,6 +383,13 @@ export const updatedAssignment = async (request, response) => {
     return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
   }
 
+   // Check if 'name' is a string
+   if (typeof request.body.name !== 'string') {
+    return response.status(400).json({
+      message: "Name should be a string",
+    });
+  }
+
       // Check if 'points' is an integer
       if (!Number.isInteger(request.body.points)) {
         return response.status(400).json({
@@ -533,20 +547,26 @@ export const healthz = async (request, response) => {
           return response
             .status(200)
             .header("Cache-Control", "no-cache, no-store, must-revalidate")
-            .send("");
+            .json({
+              message: "Database is healthy",
+            });
         } else {
           logger.warn('Health check failed');
           return response
             .status(503)
             .header("Cache-Control", "no-cache, no-store, must-revalidate")
-            .send("");
+            .json({
+              message: "Database is not healthy",
+            });
         }
       } catch (error) {
         logger.error(`Error during health check: ${error.message}`);
         return response
           .status(503)
           .header("Cache-Control", "no-cache, no-store, must-revalidate")
-          .send("");
+          .json({
+            message: "Database is not healthy",
+          });
       }
     }
   } finally {
