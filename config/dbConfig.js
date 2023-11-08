@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import logger from "./logger.js";
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ const databaseConfig = {
   dialect,
   port,
 };
+
+logger.info('Database configuration loaded successfully:', databaseConfig);
 
 export default {
   database: databaseConfig,
