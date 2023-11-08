@@ -106,22 +106,6 @@ export const post = async (request, response) => {
     });
   }
 
-  // Check if 'points' is an integer
-  if (!Number.isInteger(request.body.points)) {
-    return response.status(400).send("'points' must be an integer.");
-  }
-
-  // Check if 'num_of_attempts' is an integer
-  if (!Number.isInteger(request.body.num_of_attempts)) {
-    return response.status(400).send("'num_of_attempts' must be an integer.");
-  }
-
-  // Check if 'deadline' is a valid date
-  const deadlineDate = new Date(request.body.deadline);
-  if (isNaN(deadlineDate.getTime())) {
-    return response.status(400).send("'deadline' must be a valid date.");
-  }
-  
     let newDetails = request.body;
     newDetails.user_id = authenticated;
     newDetails.assignment_created = new Date().toISOString();
