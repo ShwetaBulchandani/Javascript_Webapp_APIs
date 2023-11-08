@@ -389,7 +389,6 @@ export const updatedAssignment = async (request, response) => {
       message: "Name should be a string",
     });
   }
-
       // Check if 'points' is an integer
       if (!Number.isInteger(request.body.points)) {
         return response.status(400).json({
