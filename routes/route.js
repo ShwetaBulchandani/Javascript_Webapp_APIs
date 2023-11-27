@@ -9,7 +9,7 @@ router.route('/v1/assignments').get(assignmentController.getAssignments);
 router.route('/v1/assignments/:id').put(assignmentController.updatedAssignment);
 router.route('/healthz').all(assignmentController.healthz);
 router.route('/v1/assignments/:id').get(assignmentController.getAssignmentUsingId);
-router.route('/v1/assignments/:id/submission').post(assignmentController.submitAssignmentUsingId);
+router.route('/v1/assignments/:id/submission').post(assignmentController.postSubmission);
 router.use((req, res) => {
     res.status(405).send('');
 });
