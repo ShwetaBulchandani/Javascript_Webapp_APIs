@@ -6,6 +6,8 @@ import {
   getAssignmentById,
   updateAssignment,
   healthCheck,
+  getSubmissionById,
+  addSubmission
 } from "../services/assignmentService.js";
 import db from "../config/dbSetup.js";
 import logger from "../config/logger.js";
@@ -494,7 +496,7 @@ export const remove = async (request, response) => {
       logger.warn(`Assignment not found for removal: ${request.params.id}`);
       return response.status(404).send("");
     }
-    
+
     const userData = await db.submission.findOne({ where: { id: authenticated } });
     if (userData.length > 0) {
         return response.status(400).send('');
@@ -586,7 +588,7 @@ export const healthz = async (request, response) => {
 
 export const submission = async (request, response) => {
   statsd.increment("endpoint.post.submission");
-  const health = await controller.healthCheck();
+  const health = await healthCheck();
   if (health !== true) {
       appLogger.warn("Submission API unavailable: health check failed.");
       return response.status(503).header('Cache-Control', 'no-cache, no-store, must-revalidate').send('');
@@ -603,7 +605,7 @@ export const submission = async (request, response) => {
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [email, password] = credentials.split(':');
 
-  const authenticated = await controller.authenticate(email, password);
+  const authenticated = await authenticate(email, password);
 
   if (authenticated === null) {
       appLogger.warn("Submission API user authentication failed.");
@@ -658,13 +660,13 @@ export const submission = async (request, response) => {
         return response.status(400).send("Invalid submission URL.");
       }
 
-      const submissions = await controller.getSubmissionById(authenticated, id);
+      const submissions = await getSubmissionById(authenticated, id);
 
       if (submissions.length >= assignment.num_of_attempts) {
           appLogger.warn("Submission API num of attempts exceeded");
           return response.status(403).send('');
       } else {
-          const submissionDetails = await controller.addSubmission(newDetails);
+          const submissionDetails = await addSubmission(newDetails);
           appLogger.info("Submission successfull.");
           AWS.config.update({ region: 'us-east-1' });
           const sns = new AWS.SNS();
