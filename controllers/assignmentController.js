@@ -494,6 +494,11 @@ export const remove = async (request, response) => {
       logger.warn(`Assignment not found for removal: ${request.params.id}`);
       return response.status(404).send("");
     }
+    
+    const userData = await db.submission.findOne({ where: { id: authenticated } });
+    if (userData.length > 0) {
+        return response.status(400).send('');
+    }
 
     if (assignment.user_id != authenticated) {
       logger.warn(`Unauthorized user for assignment removal: ${authenticated}`);
@@ -647,6 +652,11 @@ export const submission = async (request, response) => {
       newDetails.submission_date = new Date().toISOString();
       newDetails.assignment_updated = new Date().toISOString();
       newDetails.assignment_id = id;
+
+      if (!validator.isURL(newDetails.submission_url)) {
+        appLogger.warn("Submission API Invalid URL.");
+        return response.status(400).send("Invalid submission URL.");
+      }
 
       const submissions = await controller.getSubmissionById(authenticated, id);
 
