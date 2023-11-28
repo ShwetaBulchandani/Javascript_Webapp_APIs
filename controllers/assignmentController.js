@@ -7,7 +7,7 @@ import {
   updateAssignment,
   healthCheck,
   getSubmissionById,
-  addSubmission
+  addSubmission,
 } from "../services/assignmentService.js";
 import db from "../config/dbSetup.js";
 import logger from "../config/logger.js";
