@@ -6,6 +6,8 @@ import {
   getAssignmentById,
   updateAssignment,
   healthCheck,
+  getSubmissionById,
+  addSubmission,
 } from "../services/assignmentService.js";
 import db from "../config/dbSetup.js";
 import logger from "../config/logger.js";
@@ -494,7 +496,7 @@ export const remove = async (request, response) => {
       logger.warn(`Assignment not found for removal: ${request.params.id}`);
       return response.status(404).send("");
     }
-    
+
     const userData = await db.submission.findOne({ where: { id: authenticated } });
     if (userData.length > 0) {
         return response.status(400).send('');
@@ -586,16 +588,16 @@ export const healthz = async (request, response) => {
 
 export const submission = async (request, response) => {
   statsd.increment("endpoint.post.submission");
-  const health = await controller.healthCheck();
+  const health = await healthCheck();
   if (health !== true) {
-      appLogger.warn("Submission API unavailable: health check failed.");
+      logger.warn("Submission API unavailable: health check failed.");
       return response.status(503).header('Cache-Control', 'no-cache, no-store, must-revalidate').send('');
   }
 
   const authHeader = request.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Basic ')) {
-      appLogger.warn("Submission API user authentication failed.");
+    logger.warn("Submission API user authentication failed.");
       return response.status(401).send('');
   }
 
@@ -603,10 +605,10 @@ export const submission = async (request, response) => {
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [email, password] = credentials.split(':');
 
-  const authenticated = await controller.authenticate(email, password);
+  const authenticated = await authenticate(email, password);
 
   if (authenticated === null) {
-      appLogger.warn("Submission API user authentication failed.");
+    logger.warn("Submission API user authentication failed.");
       return response.status(401).send('');
   }
 
@@ -624,7 +626,7 @@ export const submission = async (request, response) => {
   const missingKeys = requiredKeys.filter(key => !bodyKeys.includes(key));
 
   if (missingKeys.length > 0) {
-      appLogger.warn("Submission API Invalid body, parameters missing.");
+    logger.warn("Submission API Invalid body, parameters missing.");
       return response.status(400).send("Missing required keys: " + missingKeys.join(", "));
   }
 
@@ -632,14 +634,14 @@ export const submission = async (request, response) => {
   const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key));
 
   if (extraKeys.length > 0) {
-      appLogger.warn("Submission API Invalid body, parameters error.");
+    logger.warn("Submission API Invalid body, parameters error.");
       return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
   }
 
   const currentDate = new Date();
 
   if (currentDate > assignment.deadline) {
-      appLogger.warn("Submission API submission done after deadline");
+    logger.warn("Submission API submission done after deadline");
       return response.status(400).send('');
   }
 
@@ -654,18 +656,18 @@ export const submission = async (request, response) => {
       newDetails.assignment_id = id;
 
       if (!validator.isURL(newDetails.submission_url)) {
-        appLogger.warn("Submission API Invalid URL.");
+        logger.warn("Submission API Invalid URL.");
         return response.status(400).send("Invalid submission URL.");
       }
 
-      const submissions = await controller.getSubmissionById(authenticated, id);
+      const submissions = await getSubmissionById(authenticated, id);
 
       if (submissions.length >= assignment.num_of_attempts) {
-          appLogger.warn("Submission API num of attempts exceeded");
+        logger.warn("Submission API num of attempts exceeded");
           return response.status(403).send('');
       } else {
-          const submissionDetails = await controller.addSubmission(newDetails);
-          appLogger.info("Submission successfull.");
+          const submissionDetails = await addSubmission(newDetails);
+          logger.info("Submission successfull.");
           AWS.config.update({ region: 'us-east-1' });
           const sns = new AWS.SNS();
           const userInfo = {
@@ -681,16 +683,16 @@ export const submission = async (request, response) => {
               Message: JSON.stringify(message),
           }, (err, data) => {
               if (err) {
-                  appLogger.error("Error publishing to SNS:", err);
+                logger.error("Error publishing to SNS:", err);
                   return response.status(500).send("Error submitting.", err);
               } else {
-                  appLogger.info("Submission successful:", data);
+                logger.info("Submission successful:", data);
                   return response.status(200).send("Submission successful.");
               }
           });
       }
   } catch (error) {
-      appLogger.error("Submission API bad request.", error);
+    logger.error("Submission API bad request.", error);
       return response.status(400).send('');
   }
 };
