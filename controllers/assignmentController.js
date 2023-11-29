@@ -17,7 +17,7 @@ import AWS from "aws-sdk";
 import config from '../config/dbConfig.js';
 
 const sns = new AWS.SNS();
-const snsTopicArn = process.env.SNS_TOPIC_ARN;
+const snsTopicArn = process.env.TopicArn;
 
 // Create assignment
 export const post = async (request, response) => {
@@ -291,19 +291,20 @@ export const getAssignmentUsingId = async (request, response) => {
       return response.status(200).send(assignments);
     }
   } catch (error) {
-    if (error.status === 403) {
+    if (error && error.status === 403) {
       logger.warn(`Forbidden access for getAssignmentById: ${error.message}`);
       return response.status(403).send("");
-    } else if (error.status === 503) {
+    } else if (error && error.status === 503) {
       // Other 503 handling
       logger.error(`Error during getAssignmentById: ${error.message}`);
       return response.status(503).send("");
     } else {
-      logger.error(`Error during getAssignmentById: ${error.message}`);
+      logger.error(`Error during getAssignmentById: ${error ? error.message : 'Unknown error'}`);
       return response.status(400).send("");
     }
   }
 };
+
 
 // update assignment
 export const updatedAssignment = async (request, response) => {
@@ -498,11 +499,6 @@ export const remove = async (request, response) => {
       return response.status(404).send("");
     }
 
-    const userData = await db.submission.findOne({ where: { id: authenticated } });
-    if (userData.length > 0) {
-        return response.status(400).send('');
-    }
-
     if (assignment.user_id != authenticated) {
       logger.warn(`Unauthorized user for assignment removal: ${authenticated}`);
       return response.status(403).send("");
@@ -629,11 +625,11 @@ const health = await healthCheck();
 
   const bodyKeys = Object.keys(request.body);
 
-  const requestuiredKeys = [
+  const requiredKeys = [
       "submission_url",
   ];
   console.log("bodyKey ", bodyKeys[0]);
-  console.log("requestuiredKeys ", requestuiredKeys[0]);
+  console.log("requiredKeys ", requiredKeys[0]);
   // Check if all requestuired keys are presponseent
 
   if (bodyKeys.length !=1) {
@@ -641,7 +637,7 @@ const health = await healthCheck();
       return response.status(400).send("Extra parameters ");
   }
 
-  if(bodyKeys[0]!=requestuiredKeys[0])
+  if(bodyKeys[0]!=requiredKeys[0])
   {
     logger.warn("Submission API Invalid body, parameters error.");
       return response.status(400).send("Invalid keys in the payload: " );
@@ -656,6 +652,12 @@ const health = await healthCheck();
 
   console.log("CURRENT date", currentDate);
   console.log("assignment.", assignment);
+
+    // Check if assignment is null or undefined
+    if (!assignment) {
+      logger.warn("Assignment not found");
+      return response.status(404).send("Assignment not found");
+    }
   console.log("assignment.deadline", assignment.deadline);
 
 
@@ -703,10 +705,10 @@ const health = await healthCheck();
         (err, data) => {
           if (err) {
             logger.error("Error publishing to SNS:", err);
-            return responseponse.status(500).send("Error submitting.", err);
+            return response.status(500).send("Error submitting " + JSON.stringify(err));
           } else {
             logger.info("Submission successful:");
-            return response.status(200).send("Submission successful.",data);
+            return response.status(200).send("Submission successful");
           }
         }
       );
@@ -714,7 +716,7 @@ const health = await healthCheck();
   } catch (error) {
     console.error(error);
     logger.error(
-      `Error occurred while processing the ${request.method} requestuest: ${error}`
+      `Error occurred while processing the ${request.method} request: ${error}`
     );
     response.status(500).send("Internal Server Error");
   }
