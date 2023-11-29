@@ -704,7 +704,7 @@ const health = await healthCheck();
     newSubmissionDetails.assignment_updated = new Date().toISOString();
     newSubmissionDetails.assignment_id = id;
 
-    if (!validator.isURL(newDetails.submission_url)) {
+    if (!validator.isURL(newSubmissionDetails.submission_url)) {
       logger.warn("Submission API Invalid URL.");
       return response.status(400).send("Invalid submission URL.");
   }
