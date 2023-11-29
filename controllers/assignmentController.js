@@ -630,6 +630,7 @@ const health = await healthCheck();
   ];
   console.log("bodyKey ", bodyKeys[0]);
   console.log("requiredKeys ", requiredKeys[0]);
+
   // Check if all requestuired keys are presponseent
 
   if (bodyKeys.length !=1) {
@@ -696,6 +697,9 @@ const health = await healthCheck();
       const message = {
         userInfo,
         url,
+        email,
+        num_of_attempts,
+        assignment_id,
       };
       sns.publish(
         {

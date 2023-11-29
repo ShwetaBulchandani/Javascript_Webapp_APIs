@@ -49,14 +49,14 @@ export const getAllAssignments = async () => {
 }
 
 //get all athe assignments by id
-export const getAssignmentById = async (user_id, id) => {
+export const getAssignmentById = async (id) => {
     try {
         const assignmentsById = await db.assignment.findOne({
             where: { id: id },
         });
 
-        if (assignmentById) {
-            logger.info(`Assignment retrieved by ID ${id}: ${JSON.stringify(assignmentById)}`);
+        if (assignmentsById) {
+            logger.info(`Assignment retrieved by ID ${id}: ${JSON.stringify(assignmentsById)}`);
         } else {
             logger.info(`No assignment found for ID ${id}`);
         }
