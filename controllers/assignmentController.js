@@ -14,6 +14,7 @@ import logger from "../config/logger.js";
 import StatsD from "node-statsd";
 const statsd = new StatsD({ host: "localhost", port: 8125 });
 import AWS from "aws-sdk";
+import config from '../config/dbConfig.js';
 
 const sns = new AWS.SNS();
 const snsTopicArn = process.env.SNS_TOPIC_ARN;
