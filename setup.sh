@@ -12,7 +12,7 @@ sudo mv /home/admin/webapp.zip /opt/csye6225/webapp.zip
 sudo mv /home/admin/users.csv /opt/csye6225/users.csv
 sudo mv /home/admin/cloudwatch-config.json /opt/csye6225/cloudwatch-config.json
 cd /opt/csye6225
-sudo unzip -o webapp.zip
+sudo unzip -o /opt/csye6225/webapp.zip -d /opt/csye6225/
 sudo chown -R csye6225 /opt/csye6225
 sudo chgrp -R csye6225 /opt/csye6225
 sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/csye6225/cloudwatch-config.json -s
