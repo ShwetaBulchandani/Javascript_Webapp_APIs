@@ -674,7 +674,7 @@ const health = await healthCheck();
     let newSubmissionDetails = request.body;
     newSubmissionDetails.user_id = authenticated;
     newSubmissionDetails.submission_date = new Date().toISOString();
-    newSubmissionDetails.submission_updated = new Date().toISOString();
+    newSubmissionDetails.assignment_updated = new Date().toISOString();
     newSubmissionDetails.assignment_id = id;
 
     const submissions = await getSubmissionById(authenticated, id);
