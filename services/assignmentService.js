@@ -110,6 +110,32 @@ export const authenticate = async (email, password) => {
     }
 };
 
+export const getSubmissionById = async (userId, assignmentId)=>{
+    try {
+        const allSubmissions = await db.submission.findAll({
+            where: { user_id: userId, assignment_id: assignmentId},
+    });
+        return allSubmissions;
+    } catch (error) {
+        logger.error(`Error retrieving all submissions: ${error.message}`);
+        return null;
+    }
+}
+
+export const addSubmission = async (newDetails) => {
+    try {
+        await db.sequelize.sync({ alter: true });
+        const newSubmissions = await db.submission.create(newDetails);
+        logger.info(`New assignment added: ${newDetails.id}`);
+        return newSubmissions;
+    } catch (error) {
+        console.error("Error creating submission:");
+        logger.error(`Error creating submission: ${error.message}`);
+        throw error; // You might want to handle errors more gracefully
+    }
+
+}
+
 
 //health check
 export const healthCheck = async () => {

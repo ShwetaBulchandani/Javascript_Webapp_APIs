@@ -6,11 +6,18 @@ import {
   getAssignmentById,
   updateAssignment,
   healthCheck,
+  getSubmissionById,
+  addSubmission,
 } from "../services/assignmentService.js";
 import db from "../config/dbSetup.js";
 import logger from "../config/logger.js";
 import StatsD from "node-statsd";
 const statsd = new StatsD({ host: "localhost", port: 8125 });
+import AWS from "aws-sdk";
+import config from '../config/dbConfig.js';
+
+const sns = new AWS.SNS();
+const snsTopicArn = process.env.SNS_TOPIC_ARN;
 
 // Create assignment
 export const post = async (request, response) => {
@@ -491,6 +498,11 @@ export const remove = async (request, response) => {
       return response.status(404).send("");
     }
 
+    const userData = await db.submission.findOne({ where: { id: authenticated } });
+    if (userData.length > 0) {
+        return response.status(400).send('');
+    }
+
     if (assignment.user_id != authenticated) {
       logger.warn(`Unauthorized user for assignment removal: ${authenticated}`);
       return response.status(403).send("");
@@ -572,5 +584,138 @@ export const healthz = async (request, response) => {
   } finally {
     // This block will run regardless of the outcome, incrementing the total count
     statsd.increment('api.healthz.total');
+  }
+};
+
+export const submission = async (request, response) => {
+  statsd.increment("endpoint.post.submission");
+const health = await healthCheck();
+  if (health !== true) {
+    logger.error("Health check failed. Unable to create assignment.");
+    return response
+      .status(503)
+      .header("Cache-Control", "no-cache, no-store, must-revalidate")
+      .send("");
+  }
+  const authHeader = request.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    logger.warn("Submission API user authentication failed.");
+      return response.status(401).send('');
+  }
+
+  const base64Credentials = authHeader.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [email, password] = credentials.split(':');
+
+  const authenticated = await authenticate(email, password);
+
+  if (authenticated === null) {
+    logger.warn("Submission API user authentication failed.");
+      return response.status(401).send('');
+  }
+
+  //Increment custom metric for post API calls
+  statsd.increment("api.postSubmission.calls");
+  logger.info(`Received ${request.method} requestuest to add submission`);
+
+  //----------------------------------------------------------------------//
+
+  // const userData = await db.submission.findOne({ where: { id: authenticated } });
+  //     if (userData.length > 0) {
+  //         return responseponse.status(400).send('');
+  //     }
+
+
+  const bodyKeys = Object.keys(request.body);
+
+  const requestuiredKeys = [
+      "submission_url",
+  ];
+  console.log("bodyKey ", bodyKeys[0]);
+  console.log("requestuiredKeys ", requestuiredKeys[0]);
+  // Check if all requestuired keys are presponseent
+
+  if (bodyKeys.length !=1) {
+      logger.warn("Submission API Invalid body, parameters missing.");
+      return response.status(400).send("Extra parameters ");
+  }
+
+  if(bodyKeys[0]!=requestuiredKeys[0])
+  {
+    logger.warn("Submission API Invalid body, parameters error.");
+      return response.status(400).send("Invalid keys in the payload: " );
+  }
+
+
+  const currentDate = new Date();
+  let assignmentId = request.params.id;
+  let assignment = await db.assignment.findOne({
+    where: { id: assignmentId },
+  });
+
+  console.log("CURRENT date", currentDate);
+  console.log("assignment.", assignment);
+  console.log("assignment.deadline", assignment.deadline);
+
+
+  if (currentDate > assignment.deadline) {
+    logger.warn("Submission API submission done after deadline");
+    console.log("Submission API submission done after deadline");
+    return response.status(400).send("");
+  }
+
+ 
+  const user_id = await db.user.findOne({ where: { id: authenticated } });
+  
+
+  try {
+    const id = request.params.id;
+    let newSubmissionDetails = request.body;
+    newSubmissionDetails.user_id = authenticated;
+    newSubmissionDetails.submission_date = new Date().toISOString();
+    newSubmissionDetails.assignment_updated = new Date().toISOString();
+    newSubmissionDetails.assignment_id = id;
+
+    const submissions = await getSubmissionById(authenticated, id);
+
+    if (submissions.length >= assignment.num_of_attempts) {
+      logger.warn("Submission API num of attempts exceeded");
+      return response.status(403).send("");
+    } else {
+      const submissionDetails = await addSubmission(newSubmissionDetails);
+      logger.info("Submission successfull.");
+      AWS.config.update({ region: "us-east-1" });
+      const sns = new AWS.SNS();
+      const userInfo = {
+        email: user_id.emailid,
+      };
+      const url = newSubmissionDetails.submission_url;
+      const message = {
+        userInfo,
+        url,
+      };
+      sns.publish(
+        {
+          TopicArn: config.database.TopicArn,
+          Message: JSON.stringify(message),
+        },
+        (err, data) => {
+          if (err) {
+            logger.error("Error publishing to SNS:", err);
+            return responseponse.status(500).send("Error submitting.", err);
+          } else {
+            logger.info("Submission successful:");
+            return response.status(200).send("Submission successful.",data);
+          }
+        }
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    logger.error(
+      `Error occurred while processing the ${request.method} requestuest: ${error}`
+    );
+    response.status(500).send("Internal Server Error");
   }
 };
