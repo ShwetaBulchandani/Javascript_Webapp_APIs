@@ -13,6 +13,18 @@ const { dialect, host, user, password, database } = config.database;
 const sequelize = new Sequelize(`${dialect}://${user}:${password}@${host}/${database}`);
 
 
+// const port = 8080;
+// const host = 'localhost';
+// const user = 'root';
+// const password = 'admin123';
+// const database = 'assignment1_db';
+// const dialect = 'mysql';
+
+
+// const sequelize = new Sequelize(
+//   `${dialect}://${user}:${password}@${host}/${database}`
+// );
+
 const db = {
   sequelize,
   assignment: assignmentModel(sequelize),
