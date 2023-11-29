@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 
 const submissionModel = (sequelize) => {
+
   const Submission = sequelize.define(
     "submission",
     {
