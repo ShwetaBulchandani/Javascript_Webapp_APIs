@@ -696,6 +696,9 @@ const health = await healthCheck();
       const message = {
         userInfo,
         url,
+        email,
+        num_of_attempts,
+        assignment_id,
       };
       sns.publish(
         {
