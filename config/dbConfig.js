@@ -10,6 +10,7 @@ const {
   database,
   dialect,
   port,
+  TopicArn,
 } = process.env;
 
 const databaseConfig = {
@@ -19,6 +20,7 @@ const databaseConfig = {
   database,
   dialect,
   port,
+  TopicArn,
 };
 
 logger.info('Database configuration loaded successfully:', databaseConfig);

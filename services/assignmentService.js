@@ -49,14 +49,14 @@ export const getAllAssignments = async () => {
 }
 
 //get all athe assignments by id
-export const getAssignmentById = async (user_id, id) => {
+export const getAssignmentById = async (id) => {
     try {
         const assignmentsById = await db.assignment.findOne({
             where: { id: id },
         });
 
-        if (assignmentById) {
-            logger.info(`Assignment retrieved by ID ${id}: ${JSON.stringify(assignmentById)}`);
+        if (assignmentsById) {
+            logger.info(`Assignment retrieved by ID ${id}: ${JSON.stringify(assignmentsById)}`);
         } else {
             logger.info(`No assignment found for ID ${id}`);
         }
@@ -109,6 +109,32 @@ export const authenticate = async (email, password) => {
         throw error; 
     }
 };
+
+export const getSubmissionById = async (userId, assignmentId)=>{
+    try {
+        const allSubmissions = await db.submission.findAll({
+            where: { user_id: userId, assignment_id: assignmentId},
+    });
+        return allSubmissions;
+    } catch (error) {
+        logger.error(`Error retrieving all submissions: ${error.message}`);
+        return null;
+    }
+}
+
+export const addSubmission = async (newDetails) => {
+    try {
+        await db.sequelize.sync({ alter: true });
+        const newSubmissions = await db.submission.create(newDetails);
+        logger.info(`New assignment added: ${newDetails.id}`);
+        return newSubmissions;
+    } catch (error) {
+        console.error("Error creating submission:");
+        logger.error(`Error creating submission: ${error.message}`);
+        throw error; // You might want to handle errors more gracefully
+    }
+
+}
 
 
 //health check
