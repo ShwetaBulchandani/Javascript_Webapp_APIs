@@ -663,7 +663,9 @@ const health = await healthCheck();
     // Check if assignment is null or undefined
     if (!assignment) {
       logger.warn("Assignment not found");
-      return response.status(404).send("Assignment not found");
+      return response.status(404).json({
+        message: "Assignment not found",
+      });
     }
   console.log("assignment.deadline", assignment.deadline);
 
@@ -681,7 +683,7 @@ const health = await healthCheck();
 
       if (missingKeys.length > 0) {
           logger.warn("Submission API Invalid body, parameters missing.");
-          return response.status(400).send("Missing required keys: " + missingKeys.join(", "));
+          return response.status(400).json({message: "Missing required keys: " + missingKeys.join(", ")});
       }
 
     // Check if there are any additional keys in the payload
@@ -689,12 +691,13 @@ const health = await healthCheck();
 
     if (extraKeys.length > 0) {
         logger.warn("Submission API Invalid body, parameters error.");
-        return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
+        return response.status(400).json({
+          message: "Invalid keys in the payload: " + extraKeys.join(", "),
+        })
     }
 
  
   const user_id = await db.user.findOne({ where: { id: authenticated } });
-  
 
   try {
     const id = request.params.id;
@@ -706,7 +709,9 @@ const health = await healthCheck();
 
     if (!validator.isURL(newSubmissionDetails.submission_url)) {
       logger.warn("Submission API Invalid URL.");
-      return response.status(400).send("Invalid submission URL.");
+      return response.status(400).json({
+        message: "Invalid submission URL",
+      })
   }
 
     const submissions = await getSubmissionById(authenticated, id);
@@ -720,18 +725,20 @@ const health = await healthCheck();
       AWS.config.update({ region: "us-east-1" });
       const sns = new AWS.SNS();
       const userInfo = {
-        email: user_id.emailid,
+        email,
       };
       const url = newSubmissionDetails.submission_url;
       const assignment_id = id;
       const num_of_attempts = (submissions.length+1);
-      const email = user_id.email;
+      const email = user_id.emailid;
+      const submission_date = submission_date;
       const message = {
         userInfo,
         url,
         email,
         num_of_attempts,
         assignment_id,
+        submission_date,
       };
       sns.publish(
         {
@@ -741,10 +748,13 @@ const health = await healthCheck();
         (err, data) => {
           if (err) {
             logger.error("Error publishing to SNS:", err);
-            return response.status(500).send("Error submitting " + JSON.stringify(err));
+            return response.status(500).json({message: "Error submitting " + JSON.stringify(err),
+          });
           } else {
             logger.info("Submission successful:");
-            return response.status(200).send("Submission successful");
+            return response.status(200).json({
+              message: "Submission successful",
+            })
           }
         }
       );
@@ -754,6 +764,8 @@ const health = await healthCheck();
     logger.error(
       `Error occurred while processing the ${request.method} request: ${error}`
     );
-    response.status(500).send("Internal Server Error");
+    response.status(500).json({
+      message: "Internal Server Error",
+    });
   }
 };
