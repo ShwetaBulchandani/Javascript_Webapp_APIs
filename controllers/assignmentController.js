@@ -15,6 +15,7 @@ import StatsD from "node-statsd";
 const statsd = new StatsD({ host: "localhost", port: 8125 });
 import AWS from "aws-sdk";
 import config from '../config/dbConfig.js';
+import validator from 'validator'
 
 const sns = new AWS.SNS();
 const snsTopicArn = process.env.TopicArn;
@@ -664,8 +665,26 @@ const health = await healthCheck();
   if (currentDate > assignment.deadline) {
     logger.warn("Submission API submission done after deadline");
     console.log("Submission API submission done after deadline");
-    return response.status(400).send("");
+    return response.status(403).json({
+      message: "Assignment Deadline passed",
+    });
   }
+
+      // Check if all required keys are present
+      const missingKeys = requiredKeys.filter(key => !bodyKeys.includes(key));
+
+      if (missingKeys.length > 0) {
+          logger.warn("Submission API Invalid body, parameters missing.");
+          return response.status(400).send("Missing required keys: " + missingKeys.join(", "));
+      }
+
+    // Check if there are any additional keys in the payload
+    const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key));
+
+    if (extraKeys.length > 0) {
+        logger.warn("Submission API Invalid body, parameters error.");
+        return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
+    }
 
  
   const user_id = await db.user.findOne({ where: { id: authenticated } });
@@ -678,6 +697,11 @@ const health = await healthCheck();
     newSubmissionDetails.submission_date = new Date().toISOString();
     newSubmissionDetails.assignment_updated = new Date().toISOString();
     newSubmissionDetails.assignment_id = id;
+
+    if (!validator.isURL(newDetails.submission_url)) {
+      logger.warn("Submission API Invalid URL.");
+      return response.status(400).send("Invalid submission URL.");
+  }
 
     const submissions = await getSubmissionById(authenticated, id);
 
@@ -693,6 +717,9 @@ const health = await healthCheck();
         email: user_id.emailid,
       };
       const url = newSubmissionDetails.submission_url;
+      const assignment_id = id;
+      const num_of_attempts = (submissions.length+1);
+      const email = user_id.email;
       const message = {
         userInfo,
         url,
