@@ -14,18 +14,19 @@ import logger from "../config/logger.js";
 import StatsD from "node-statsd";
 const statsd = new StatsD({ host: "localhost", port: 8125 });
 import AWS from "aws-sdk";
-import config from '../config/dbConfig.js';
-import validator from 'validator'
+import config from "../config/dbConfig.js";
+import validator from "validator";
 
 const sns = new AWS.SNS();
 const snsTopicArn = process.env.TopicArn;
+let regexDate = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([Zz])$/;
 
 // Create assignment
 export const post = async (request, response) => {
   try {
     const health = await healthCheck(); //heathcheck for create assignment api
     if (health !== true) {
-      logger.warn('Health check failed during post');
+      logger.warn("Health check failed during post");
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -42,8 +43,7 @@ export const post = async (request, response) => {
     const authHeader = request.headers.authorization;
 
     if (!isValidAuthHeader(authHeader)) {
-
-      logger.warn('Invalid authorization header for post');
+      logger.warn("Invalid authorization header for post");
       return response.status(401).send("");
     }
 
@@ -55,83 +55,94 @@ export const post = async (request, response) => {
     }
 
     // Increment custom metric for post API calls
-    statsd.increment('api.post.calls');
+    statsd.increment("api.post.calls");
 
     const bodyKeys = Object.keys(request.body);
 
-  const requiredKeys = [
-    "name",
-    "points",
-    "num_of_attempts",
-    "deadline",
-  ];
+    const requiredKeys = ["name", "points", "num_of_attempts", "deadline"];
 
-  const optionalKeys = [
-    "assignment_created",
-    "assignment_updated",
-  ];
+    const optionalKeys = ["assignment_created", "assignment_updated"];
 
-  // Check if all required keys are present
-  const missingKeys = requiredKeys.filter(key => !bodyKeys.includes(key));
+    // Check if all required keys are present
+    const missingKeys = requiredKeys.filter((key) => !bodyKeys.includes(key));
 
-  if (missingKeys.length > 0) {
-    logger.warn(`Missing required keys in the payload for post: ${missingKeys.join(', ')}`);
-    return response.status(400).send("Missing required keys: " + missingKeys.join(", "));
-  }
+    if (missingKeys.length > 0) {
+      logger.warn(
+        `Missing required keys in the payload for post: ${missingKeys.join(
+          ", "
+        )}`
+      );
+      return response
+        .status(400)
+        .send("Missing required keys: " + missingKeys.join(", "));
+    }
 
-  // Check if there are any additional keys in the payload
-  const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key) && !optionalKeys.includes(key));
+    // Check if there are any additional keys in the payload
+    const extraKeys = bodyKeys.filter(
+      (key) => !requiredKeys.includes(key) && !optionalKeys.includes(key)
+    );
 
-  if (extraKeys.length > 0) {
-    const errorMessage = {
-      message: "Invalid keys in the payload.",
-      details: extraKeys.map(key => `Unexpected key: ${key}`),
-    };
-  
-    logger.warn(`Invalid keys in the payload for post: ${extraKeys.join(', ')}`);
-    return response.status(400).json(errorMessage);
-  }
+    if (extraKeys.length > 0) {
+      const errorMessage = {
+        message: "Invalid keys in the payload.",
+        details: extraKeys.map((key) => `Unexpected key: ${key}`),
+      };
 
-  // Check if 'name' is a string
-     if (typeof request.body.name !== 'string') {
+      logger.warn(
+        `Invalid keys in the payload for post: ${extraKeys.join(", ")}`
+      );
+      return response.status(400).json(errorMessage);
+    }
+
+    // Check if 'name' is a string
+    if (typeof request.body.name !== "string") {
       return response.status(400).json({
         message: "Name should be a string",
       });
-  }
+    }
 
-  // Check if 'points' is an integer
-  if (!Number.isInteger(request.body.points)) {
-    return response.status(400).json({
-      message: "Points must be an integer.",
-    });
-  }
+    // Check if 'points' is an integer
+    if (!Number.isInteger(request.body.points)) {
+      return response.status(400).json({
+        message: "Points must be an integer.",
+      });
+    }
 
-  // Check if 'num_of_attempts' is an integer
-  if (!Number.isInteger(request.body.num_of_attempts)) {
-    return response.status(400).json({
-      message: "Number_of_attempts must be an integer.",
-    });
-  }
+    // Check if 'num_of_attempts' is an integer
+    if (!Number.isInteger(request.body.num_of_attempts)) {
+      return response.status(400).json({
+        message: "Number_of_attempts must be an integer.",
+      });
+    }
 
-  // Check if 'deadline' is a valid date
-  const deadlineDate = new Date(request.body.deadline);
-  if (isNaN(deadlineDate.getTime())) {
-    return response.status(400).json({
-      message: "Deadline must be an valid date.",
-    });
-  }
+    // Check if 'deadline' is a valid date
+    // const deadlineDate = new Date(request.body.deadline);
+    // if (isNaN(deadlineDate.getTime())) {
+    //   return response.status(400).json({
+    //     message: "Deadline must be an valid date.",
+    //   });
+    // }
+
+    const deadlineDate = new Date(request.body.deadline);
+    if (
+      isNaN(deadlineDate.getTime()) ||
+      !regexDate.test(request.body.deadline)
+    ) {
+      return response.status(400).json({
+        message:
+          "Deadline must be a valid date in the format YYYY-MM-DDTHH:mm:ssZ.",
+      });
+    }
 
     let newDetails = request.body;
     newDetails.user_id = authenticated;
     newDetails.assignment_created = new Date().toISOString();
     newDetails.assignment_updated = new Date().toISOString();
 
-    
-      const savedDetails = await addAssignment(newDetails);
+    const savedDetails = await addAssignment(newDetails);
 
-      logger.info(`Assignment created successfully for post: ${savedDetails.id}`);
-      return response.status(201).send("");
-    
+    logger.info(`Assignment created successfully for post: ${savedDetails.id}`);
+    return response.status(201).send("");
   } catch (error) {
     handlePostError(response, error);
   }
@@ -165,7 +176,7 @@ export const getAssignments = async (request, response) => {
     // Health check
     const health = await healthCheck();
     if (health !== true) {
-      logger.warn('Health check failed during getAssignments');
+      logger.warn("Health check failed during getAssignments");
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -181,7 +192,7 @@ export const getAssignments = async (request, response) => {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
-      logger.warn('Invalid authorization header for getAssignments');
+      logger.warn("Invalid authorization header for getAssignments");
       return response.status(401).send("");
     }
 
@@ -194,22 +205,26 @@ export const getAssignments = async (request, response) => {
     const authenticated = await authenticate(email, password);
 
     if (authenticated === null) {
-      logger.warn('Authentication failed for getAssignments');
+      logger.warn("Authentication failed for getAssignments");
       return response.status(401).send("");
     }
 
     // Increment custom metric for getAssignments API calls
-    statsd.increment('api.getAssignments.calls');
+    statsd.increment("api.getAssignments.calls");
 
     const assignments = await getAllAssignments();
 
     if (assignments.length === 0) {
       // Handle the case when no assignments are found for the user
-      logger.info('No assignments found for getAssignments');
+      logger.info("No assignments found for getAssignments");
       return response.status(200).send("");
     } else {
       // Send the assignments as a JSON response
-      logger.info(`Assignments retrieved successfully for getAssignments: ${JSON.stringify(assignments)}`);
+      logger.info(
+        `Assignments retrieved successfully for getAssignments: ${JSON.stringify(
+          assignments
+        )}`
+      );
       return response.status(200).send(assignments);
     }
   } catch (error) {
@@ -232,7 +247,7 @@ export const getAssignmentUsingId = async (request, response) => {
     // Health check
     const health = await healthCheck();
     if (health !== true) {
-      logger.warn('Health check failed during getAssignmentById');
+      logger.warn("Health check failed during getAssignmentById");
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -249,7 +264,7 @@ export const getAssignmentUsingId = async (request, response) => {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
-      logger.warn('Unauthorized request for getAssignmentById');
+      logger.warn("Unauthorized request for getAssignmentById");
       return response.status(401).send("");
     }
 
@@ -262,19 +277,21 @@ export const getAssignmentUsingId = async (request, response) => {
     const authenticated = await authenticate(email, password);
 
     if (authenticated === null) {
-      logger.warn('Authentication failed for getAssignmentById');
+      logger.warn("Authentication failed for getAssignmentById");
       return response.status(401).send("");
     }
 
     // Increment custom metric for getAssignmentUsingId API calls
-    statsd.increment('api.getAssignmentUsingId.calls');
+    statsd.increment("api.getAssignmentUsingId.calls");
 
     const assignment = await db.assignment.findOne({
       where: { id: request.params.id },
     });
 
     if (!assignment) {
-      logger.info(`Assignment not found for getAssignmentById: ${request.params.id}`);
+      logger.info(
+        `Assignment not found for getAssignmentById: ${request.params.id}`
+      );
       return response.status(204).send("Assignment not found");
     }
 
@@ -288,7 +305,9 @@ export const getAssignmentUsingId = async (request, response) => {
       return response.status(404).send("");
     } else {
       // Send the assignments as a JSON response
-      logger.info(`Assignments retrieved successfully for getAssignmentById: ${id}`);
+      logger.info(
+        `Assignments retrieved successfully for getAssignmentById: ${id}`
+      );
       return response.status(200).send(assignments);
     }
   } catch (error) {
@@ -300,12 +319,15 @@ export const getAssignmentUsingId = async (request, response) => {
       logger.error(`Error during getAssignmentById: ${error.message}`);
       return response.status(503).send("");
     } else {
-      logger.error(`Error during getAssignmentById: ${error ? error.message : 'Unknown error'}`);
+      logger.error(
+        `Error during getAssignmentById: ${
+          error ? error.message : "Unknown error"
+        }`
+      );
       return response.status(400).send("");
     }
   }
 };
-
 
 // update assignment
 export const updatedAssignment = async (request, response) => {
@@ -313,7 +335,7 @@ export const updatedAssignment = async (request, response) => {
     // Health check
     const health = await healthCheck();
     if (health !== true) {
-      logger.warn('Health check failed during assignment update');
+      logger.warn("Health check failed during assignment update");
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -329,7 +351,7 @@ export const updatedAssignment = async (request, response) => {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
-      logger.warn('Unauthorized request for assignment update');
+      logger.warn("Unauthorized request for assignment update");
       return response.status(401).send("");
     }
 
@@ -342,12 +364,12 @@ export const updatedAssignment = async (request, response) => {
     const authenticated = await authenticate(email, password);
 
     if (authenticated === null) {
-      logger.warn('Authentication failed during assignment update');
+      logger.warn("Authentication failed during assignment update");
       return response.status(401).send("");
     }
 
     // Increment custom metric for updatedAssignment API calls
-    statsd.increment('api.updatedAssignment.calls');
+    statsd.increment("api.updatedAssignment.calls");
 
     const assignment = await db.assignment.findOne({
       where: { id: request.params.id },
@@ -364,78 +386,91 @@ export const updatedAssignment = async (request, response) => {
     }
     const bodyKeys = Object.keys(request.body);
 
-  const requiredKeys = [
-    "name",
-    "points",
-    "num_of_attempts",
-    "deadline",
-  ];
+    const requiredKeys = ["name", "points", "num_of_attempts", "deadline"];
 
-  const optionalKeys = [
-    "assignment_created",
-    "assignment_updated",
-  ];
+    const optionalKeys = ["assignment_created", "assignment_updated"];
 
-  // Check if all required keys are present
-  const missingKeys = requiredKeys.filter(key => !bodyKeys.includes(key));
+    // Check if all required keys are present
+    const missingKeys = requiredKeys.filter((key) => !bodyKeys.includes(key));
 
-  if (missingKeys.length > 0) {
-    logger.warn(`Missing required keys for assignment update: ${missingKeys.join(', ')}`);
-    return response.status(400).send("Missing required keys: " + missingKeys.join(", "));
-  }
+    if (missingKeys.length > 0) {
+      logger.warn(
+        `Missing required keys for assignment update: ${missingKeys.join(", ")}`
+      );
+      return response
+        .status(400)
+        .send("Missing required keys: " + missingKeys.join(", "));
+    }
 
-  // Check if there are any additional keys in the payload
-  const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key) && !optionalKeys.includes(key));
+    // Check if there are any additional keys in the payload
+    const extraKeys = bodyKeys.filter(
+      (key) => !requiredKeys.includes(key) && !optionalKeys.includes(key)
+    );
 
-  if (extraKeys.length > 0) {
-    logger.warn(`Invalid keys in the payload for assignment update: ${extraKeys.join(', ')}`);
-    return response.status(400).send("Invalid keys in the payload: " + extraKeys.join(", "));
-  }
+    if (extraKeys.length > 0) {
+      logger.warn(
+        `Invalid keys in the payload for assignment update: ${extraKeys.join(
+          ", "
+        )}`
+      );
+      return response
+        .status(400)
+        .send("Invalid keys in the payload: " + extraKeys.join(", "));
+    }
 
-   // Check if 'name' is a string
-   if (typeof request.body.name !== 'string') {
-    return response.status(400).json({
-      message: "Name should be a string",
-    });
-  }
+    // Check if 'name' is a string
+    if (typeof request.body.name !== "string") {
+      return response.status(400).json({
+        message: "Name should be a string",
+      });
+    }
 
-      // Check if 'points' is an integer
-      if (!Number.isInteger(request.body.points)) {
-        return response.status(400).json({
-          message: "Points should be an integer",
-        });
-      }
-  
-      // Check if 'num_of_attempts' is an integer
-      if (!Number.isInteger(request.body.num_of_attempts)) {
-        return response.status(400).json({
-          message: "Num_of_attempts should be an integer",
-        });
-      }
-  
-      // Check if 'deadline' is a valid date
-      const deadlineDate = new Date(request.body.deadline);
-      if (isNaN(deadlineDate.getTime())) {
-        return response.status(400).json({
-          message: "Deadline should be a valid date",
-        });
-      }
+    // Check if 'points' is an integer
+    if (!Number.isInteger(request.body.points)) {
+      return response.status(400).json({
+        message: "Points should be an integer",
+      });
+    }
+
+    // Check if 'num_of_attempts' is an integer
+    if (!Number.isInteger(request.body.num_of_attempts)) {
+      return response.status(400).json({
+        message: "Num_of_attempts should be an integer",
+      });
+    }
+
+    // Check if 'deadline' is a valid date
+    // const deadlineDate = new Date(request.body.deadline);
+    // if (isNaN(deadlineDate.getTime())) {
+    //   return response.status(400).json({
+    //     message: "Deadline should be a valid date",
+    //   });
+    // }
+
+    const deadlineDate = new Date(request.body.deadline);
+    if (
+      isNaN(deadlineDate.getTime()) ||
+      !regexDate.test(request.body.deadline)
+    ) {
+      return response.status(400).json({
+        message:
+          "Deadline must be a valid date in the format YYYY-MM-DDTHH:mm:ssZ.",
+      });
+    }
 
     const id = request.params.id;
     let newDetails = request.body;
     newDetails.assignment_updated = new Date().toISOString();
 
-    
-      const updatedDetails = await updateAssignment(newDetails, id);
+    const updatedDetails = await updateAssignment(newDetails, id);
 
-      // Check if the assignment was updated successfully
-      if (updatedDetails) {
-        logger.info(`Assignment updated successfully: ${id}`);
-        return response.status(204).send("");
-      } else {
-        logger.warn(`Assignment not found for update: ${id}`);
-        return response.status(404).send("");
-      
+    // Check if the assignment was updated successfully
+    if (updatedDetails) {
+      logger.info(`Assignment updated successfully: ${id}`);
+      return response.status(204).send("");
+    } else {
+      logger.warn(`Assignment not found for update: ${id}`);
+      return response.status(404).send("");
     }
   } catch (error) {
     if (error.status === 503) {
@@ -455,7 +490,7 @@ export const remove = async (request, response) => {
     // Health check
     const health = await healthCheck();
     if (health !== true) {
-      logger.warn('Health check failed during assignment removal');
+      logger.warn("Health check failed during assignment removal");
       return response
         .status(503)
         .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -471,7 +506,7 @@ export const remove = async (request, response) => {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
-      logger.warn('Unauthorized request for assignment removal');
+      logger.warn("Unauthorized request for assignment removal");
       return response.status(401).send("");
     }
 
@@ -484,12 +519,12 @@ export const remove = async (request, response) => {
     const authenticated = await authenticate(email, password);
 
     if (authenticated === null) {
-      logger.warn('Authentication failed during assignment removal');
+      logger.warn("Authentication failed during assignment removal");
       return response.status(401).send("");
     }
 
     // Increment custom metric for remove API calls
-    statsd.increment('api.remove.calls');
+    statsd.increment("api.remove.calls");
 
     const assignment = await db.assignment.findOne({
       where: { id: request.params.id },
@@ -506,7 +541,7 @@ export const remove = async (request, response) => {
     }
 
     if (request.body && Object.keys(request.body).length > 0) {
-      logger.warn('Invalid request body for assignment removal');
+      logger.warn("Invalid request body for assignment removal");
       return response.status(400).send("");
     }
 
@@ -537,22 +572,22 @@ export const remove = async (request, response) => {
 export const healthz = async (request, response) => {
   try {
     // Increment custom metric for healthz API calls
-    statsd.increment('api.healthz.calls');
+    statsd.increment("api.healthz.calls");
 
     if (request.method !== "GET") {
       logger.warn(`Invalid method ${request.method} for healthz check`);
       return response.status(405).send("");
     } else if (request.headers["content-length"] > 0) {
-      logger.warn('Invalid content-length for healthz check');
+      logger.warn("Invalid content-length for healthz check");
       return response.status(400).send("");
     } else if (request.query && Object.keys(request.query).length > 0) {
-      logger.warn('Invalid query parameters for healthz check');
+      logger.warn("Invalid query parameters for healthz check");
       return response.status(400).send("");
     } else {
       try {
         const health = await healthCheck();
         if (health === true) {
-          logger.info('Health check passed');
+          logger.info("Health check passed");
           return response
             .status(200)
             .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -560,7 +595,7 @@ export const healthz = async (request, response) => {
               message: "Database is healthy",
             });
         } else {
-          logger.warn('Health check failed');
+          logger.warn("Health check failed");
           return response
             .status(503)
             .header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -580,13 +615,13 @@ export const healthz = async (request, response) => {
     }
   } finally {
     // This block will run regardless of the outcome, incrementing the total count
-    statsd.increment('api.healthz.total');
+    statsd.increment("api.healthz.total");
   }
 };
 
 export const submission = async (request, response) => {
   statsd.increment("endpoint.post.submission");
-const health = await healthCheck();
+  const health = await healthCheck();
   if (health !== true) {
     logger.error("Health check failed. Unable to create assignment.");
     return response
@@ -596,20 +631,22 @@ const health = await healthCheck();
   }
   const authHeader = request.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
+  if (!authHeader || !authHeader.startsWith("Basic ")) {
     logger.warn("Submission API user authentication failed.");
-      return response.status(401).send('');
+    return response.status(401).send("");
   }
 
-  const base64Credentials = authHeader.split(' ')[1];
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-  const [email, password] = credentials.split(':');
+  const base64Credentials = authHeader.split(" ")[1];
+  const credentials = Buffer.from(base64Credentials, "base64").toString(
+    "ascii"
+  );
+  const [email, password] = credentials.split(":");
 
   const authenticated = await authenticate(email, password);
 
   if (authenticated === null) {
     logger.warn("Submission API user authentication failed.");
-      return response.status(401).send('');
+    return response.status(401).send("");
   }
 
   //Increment custom metric for post API calls
@@ -623,28 +660,23 @@ const health = await healthCheck();
   //         return responseponse.status(400).send('');
   //     }
 
-
   const bodyKeys = Object.keys(request.body);
 
-  const requiredKeys = [
-      "submission_url",
-  ];
+  const requiredKeys = ["submission_url"];
   console.log("bodyKey ", bodyKeys[0]);
   console.log("requiredKeys ", requiredKeys[0]);
 
   // Check if all requestuired keys are presponseent
 
-  if (bodyKeys.length !=1) {
-      logger.warn("Submission API Invalid body, parameters missing.");
-      return response.status(400).send("Extra parameters ");
+  if (bodyKeys.length != 1) {
+    logger.warn("Submission API Invalid body, parameters missing.");
+    return response.status(400).send("Extra parameters ");
   }
 
-  if(bodyKeys[0]!=requiredKeys[0])
-  {
+  if (bodyKeys[0] != requiredKeys[0]) {
     logger.warn("Submission API Invalid body, parameters error.");
-      return response.status(400).send("Invalid keys in the payload: " );
+    return response.status(400).send("Invalid keys in the payload: ");
   }
-
 
   const currentDate = new Date();
   let assignmentId = request.params.id;
@@ -655,15 +687,14 @@ const health = await healthCheck();
   console.log("CURRENT date", currentDate);
   console.log("assignment.", assignment);
 
-    // Check if assignment is null or undefined
-    if (!assignment) {
-      logger.warn("Assignment not found");
-      return response.status(404).json({
-        message: "Assignment not found",
-      });
-    }
+  // Check if assignment is null or undefined
+  if (!assignment) {
+    logger.warn("Assignment not found");
+    return response.status(404).json({
+      message: "Assignment not found",
+    });
+  }
   console.log("assignment.deadline", assignment.deadline);
-
 
   if (currentDate > assignment.deadline) {
     logger.warn("Submission API submission done after deadline");
@@ -673,25 +704,26 @@ const health = await healthCheck();
     });
   }
 
-      // Check if all required keys are present
-      const missingKeys = requiredKeys.filter(key => !bodyKeys.includes(key));
+  // Check if all required keys are present
+  const missingKeys = requiredKeys.filter((key) => !bodyKeys.includes(key));
 
-      if (missingKeys.length > 0) {
-          logger.warn("Submission API Invalid body, parameters missing.");
-          return response.status(400).json({message: "Missing required keys: " + missingKeys.join(", ")});
-      }
+  if (missingKeys.length > 0) {
+    logger.warn("Submission API Invalid body, parameters missing.");
+    return response
+      .status(400)
+      .json({ message: "Missing required keys: " + missingKeys.join(", ") });
+  }
 
-    // Check if there are any additional keys in the payload
-    const extraKeys = bodyKeys.filter(key => !requiredKeys.includes(key));
+  // Check if there are any additional keys in the payload
+  const extraKeys = bodyKeys.filter((key) => !requiredKeys.includes(key));
 
-    if (extraKeys.length > 0) {
-        logger.warn("Submission API Invalid body, parameters error.");
-        return response.status(400).json({
-          message: "Invalid keys in the payload: " + extraKeys.join(", "),
-        })
-    }
+  if (extraKeys.length > 0) {
+    logger.warn("Submission API Invalid body, parameters error.");
+    return response.status(400).json({
+      message: "Invalid keys in the payload: " + extraKeys.join(", "),
+    });
+  }
 
- 
   const user_id = await db.user.findOne({ where: { id: authenticated } });
 
   try {
@@ -701,14 +733,14 @@ const health = await healthCheck();
     newSubmissionDetails.submission_date = new Date().toISOString();
     newSubmissionDetails.assignment_updated = new Date().toISOString();
     newSubmissionDetails.assignment_id = id;
-    newSubmissionDetails.submission_date = new Date().toISOString(); 
+    newSubmissionDetails.submission_date = new Date().toISOString();
 
     if (!validator.isURL(newSubmissionDetails.submission_url)) {
       logger.warn("Submission API Invalid URL.");
       return response.status(400).json({
         message: "Invalid submission URL",
-      })
-  }
+      });
+    }
 
     const submissions = await getSubmissionById(authenticated, id);
 
@@ -726,8 +758,8 @@ const health = await healthCheck();
       };
       const url = newSubmissionDetails.submission_url;
       const assignment_id = id;
-      const num_of_attempts = (submissions.length+1);
-      const submission_date = newSubmissionDetails.submission_date; 
+      const num_of_attempts = submissions.length + 1;
+      const submission_date = newSubmissionDetails.submission_date;
       const message = {
         userInfo,
         url,
@@ -744,13 +776,14 @@ const health = await healthCheck();
         (err, data) => {
           if (err) {
             logger.error("Error publishing to SNS:", err);
-            return response.status(500).json({message: "Error submitting " + JSON.stringify(err),
-          });
+            return response
+              .status(500)
+              .json({ message: "Error submitting " + JSON.stringify(err) });
           } else {
             logger.info("Submission successful:");
             return response.status(200).json({
               message: "Submission successful",
-            })
+            });
           }
         }
       );
