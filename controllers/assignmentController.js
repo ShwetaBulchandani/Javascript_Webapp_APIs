@@ -701,6 +701,7 @@ const health = await healthCheck();
     newSubmissionDetails.submission_date = new Date().toISOString();
     newSubmissionDetails.assignment_updated = new Date().toISOString();
     newSubmissionDetails.assignment_id = id;
+    newSubmissionDetails.submission_date = new Date().toISOString(); 
 
     if (!validator.isURL(newSubmissionDetails.submission_url)) {
       logger.warn("Submission API Invalid URL.");
@@ -719,14 +720,14 @@ const health = await healthCheck();
       logger.info("Submission successfull.");
       AWS.config.update({ region: "us-east-1" });
       const sns = new AWS.SNS();
+      const email = user_id.emailid;
       const userInfo = {
         email,
       };
       const url = newSubmissionDetails.submission_url;
       const assignment_id = id;
       const num_of_attempts = (submissions.length+1);
-      const email = user_id.emailid;
-      const submission_date = submission_date;
+      const submission_date = newSubmissionDetails.submission_date; 
       const message = {
         userInfo,
         url,
