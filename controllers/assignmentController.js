@@ -17,7 +17,7 @@ import AWS from "aws-sdk";
 import config from '../config/dbConfig.js';
 
 const sns = new AWS.SNS();
-const snsTopicArn = process.env.SNS_TOPIC_ARN;
+const snsTopicArn = process.env.TopicArn;
 
 // Create assignment
 export const post = async (request, response) => {
@@ -499,11 +499,6 @@ export const remove = async (request, response) => {
       return response.status(404).send("");
     }
 
-    const userData = await db.submission.findOne({ where: { id: authenticated } });
-    if (userData.length > 0) {
-        return response.status(400).send('');
-    }
-
     if (assignment.user_id != authenticated) {
       logger.warn(`Unauthorized user for assignment removal: ${authenticated}`);
       return response.status(403).send("");
@@ -635,7 +630,7 @@ const health = await healthCheck();
   ];
   console.log("bodyKey ", bodyKeys[0]);
   console.log("requiredKeys ", requiredKeys[0]);
-  
+
   // Check if all requestuired keys are presponseent
 
   if (bodyKeys.length !=1) {
