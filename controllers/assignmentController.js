@@ -781,7 +781,7 @@ export const submission = async (request, response) => {
               .json({ message: "Error submitting " + JSON.stringify(err) });
           } else {
             logger.info("Submission successful:");
-            return response.status(200).json({
+            return response.status(201).json({
               message: "Submission successful",
             });
           }
