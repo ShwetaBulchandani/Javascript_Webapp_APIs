@@ -12,6 +12,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: zip all files
+        run: zip -r webapp.zip .
+
       - name: Install Packer
         run: |
           wget https://releases.hashicorp.com/packer/1.7.2/packer_1.7.2_linux_amd64.zip
@@ -19,9 +22,6 @@ jobs:
           chmod +x packer
           sudo mv packer /usr/local/bin/
           packer version
-      
-      - name: zip all files
-        run: zip -r webapp.zip .
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -31,7 +31,36 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Run Packer plugin installation
-        run: packer init .
+        run: packer init ./aws-debian.pkr.hcl
 
       - name: Run Packer file
         run: packer build -var-file="variables.pkrvars.hcl" aws-debian.pkr.hcl
+
+      - name: Get latest AMI ID
+        id: ami
+        run: |
+          echo "::set-output name=ami_id::$(aws ec2 describe-images --filters 'Name=name,Values=csye6225*' --query 'Images[0].ImageId' --output text)"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.DEMO_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEMO_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.DEMO_AWS_REGION }}
+
+      - name: Create Launch Template
+        run: |
+          aws ec2 create-launch-template-version --launch-template-name ${{ secrets.LAUNCH_TEMPLATE }} --source-version 1 --launch-template-data '{"ImageId":"${{ steps.ami.outputs.ami_id }}"}'
+
+      - name: Refresh autoscaling group
+        run: |
+          aws autoscaling start-instance-refresh --auto-scaling-group-name ${{ secrets.AUTOSCALING_GROUP }}
+          flag=""
+            while [[ $flag != "Successful" && $flag != "Failed" && $flag != "Cancelled" ]]; do
+            flag=$(aws autoscaling describe-instance-refreshes --auto-scaling-group-name ${{ secrets.AUTOSCALING_GROUP }} --query 'InstanceRefreshes[0].Status' --output text)
+          done
+          echo "Instance refresh flag: $flag"
+          if [ $flag != "Successful" ]; then
+            echo "Instance refresh failed. Exiting with an error."
+            exit 1
+          fi
